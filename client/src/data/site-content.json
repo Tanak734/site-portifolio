@@ -1,0 +1,270 @@
+{
+  "perfil": {
+    "marca": "tanaka.dev",
+    "nome": "Seu Nome Completo",
+    "cargo": "Desenvolvedor",
+    "headline": "Transformo suas ideias em",
+    "palavras_rotativas": [
+      "sistemas escaláveis",
+      "sites de alta conversão",
+      "MVPs rápidos e funcionais",
+      "soluções web sob medida"
+    ],
+    "subheadline": "Construo aplicações web modernas aliando rigor técnico de engenharia de software a resultados práticos de negócio.",
+    "disponivel_para_novos_projetos": false,
+    "texto_disponibilidade": "Disponível para novos projetos neste mês",
+    "texto_indisponibilidade": "Agenda cheia no momento · Entrar na fila de espera",
+    "link_fila_espera": "#contato",
+    "avatar_url": "/images/avatar.jpg",
+    "localizacao": "Brasil",
+    "cta_principal": {
+      "texto": "Solicitar Orçamento / Iniciar Projeto",
+      "url": "#contato"
+    },
+    "navbar_rotativo": [
+      "Disponível para projetos",
+      "Sistemas web sob medida",
+      "APIs & integrações",
+      "MVPs em semanas",
+      "Sites rápidos e com SEO"
+    ]
+  },
+  "carreira": {
+    "titulo": "Minha trajetória",
+    "resumo": "Escreva aqui um resumo curto da sua carreira: como começou na programação, o tipo de problema que gosta de resolver e o que um cliente pode esperar ao trabalhar com você.",
+    "experiencias": [
+      {
+        "periodo": "2024 — Atual",
+        "cargo": "Desenvolvedor Full Stack",
+        "empresa": "Freelancer",
+        "descricao": "Desenvolvimento de sistemas web sob medida, do levantamento de requisitos ao deploy.",
+        "atual": true
+      },
+      {
+        "periodo": "2023 — 2024",
+        "cargo": "Desenvolvedor Backend",
+        "empresa": "Nome da Empresa",
+        "descricao": "Descreva suas responsabilidades e principais entregas nessa posição.",
+        "atual": false
+      }
+    ],
+    "formacao": [
+      {
+        "periodo": "2021 — 2025",
+        "curso": "Seu Curso (ex.: Engenharia de Software)",
+        "instituicao": "Nome da Instituição"
+      }
+    ]
+  },
+  "objetivos_profissionais": {
+    "titulo": "Meus Objetivos & Foco Atual",
+    "subtitulo": "Minha visão de carreira e as frentes técnicas em que estou aprofundando minha engenharia.",
+    "missao": "Construir software sem deixar de lado a entrega, a qualidade e o caráter.",
+    "metas_atuais": [
+      "Aprofundamento em Arquitetura em Camadas, Modularidade e Sistemas Distribuídos",
+      "Especialização em ecossistemas de alta produtividade e performance (TypeScript/Fastify e Go)",
+      "Aplicação de Engenharia de Requisitos estruturada no ciclo de vida do cliente"
+    ],
+    "interesses_tecnicos": [
+      "Modelagem Relacional Avançada (PostgreSQL)",
+      "Processamento Assíncrono e Mensageria",
+      "DevOps, Docker e Deploy Automatizado"
+    ]
+  },
+  "links_sociais": [
+    {
+      "nome": "GitHub",
+      "url": "https://github.com/seu-user",
+      "icone": "github"
+    },
+    {
+      "nome": "LinkedIn",
+      "url": "https://linkedin.com/in/seu-user",
+      "icone": "linkedin"
+    },
+    {
+      "nome": "E-mail",
+      "url": "mailto:seu-email@exemplo.com",
+      "icone": "mail"
+    },
+    {
+      "nome": "Currículo PDF",
+      "url": "/docs/curriculo.pdf",
+      "icone": "file-text"
+    }
+  ],
+  "categorias_skills": [
+    {
+      "categoria": "Backend & APIs",
+      "descricao": "Serviços rápidos, seguros e escaláveis.",
+      "items": [
+        {
+          "nome": "TypeScript",
+          "slug_icone": "typescript",
+          "marquee": true
+        },
+        {
+          "nome": "Go",
+          "slug_icone": "go",
+          "marquee": true
+        },
+        {
+          "nome": "php",
+          "slug_icone": "php",
+          "marquee": true
+        },
+        {
+          "nome": "Java",
+          "slug_icone": "javascript",
+          "marquee": true
+        },
+        {
+          "nome": "rub",
+          "slug_icone": "ruby",
+          "marquee": true
+        },
+        {
+          "nome": "spring",
+          "slug_icone": "spring",
+          "marquee": true
+        }
+      ]
+    },
+    {
+      "categoria": "Bancos de Dados & Persistência",
+      "descricao": "Modelagem íntegra e consultas otimizadas.",
+      "items": [
+        {
+          "nome": "PostgreSQL",
+          "slug_icone": "postgres",
+          "marquee": true
+        },
+        {
+          "nome": "SQLite",
+          "slug_icone": "sqlite",
+          "marquee": true
+        },
+        {
+          "nome": "mongodb",
+          "slug_icone": "mongodb",
+          "marquee": true
+        },
+        {
+          "nome": "mariadb",
+          "slug_icone": "mariadb",
+          "marquee": true
+        },
+        {
+          "nome": "redis",
+          "slug_icone": "redis",
+          "marquee": true
+        }
+      ]
+    },
+    {
+      "categoria": "Frontend & Interfaces",
+      "descricao": "Interfaces modernas com foco em performance e SEO.",
+      "items": [
+        {
+          "nome": "React",
+          "slug_icone": "react",
+          "marquee": true
+        },
+        {
+          "nome": "Tailwind CSS",
+          "slug_icone": "tailwind",
+          "marquee": true
+        },
+        {
+          "nome": "next",
+          "slug_icone": "nextdotjs",
+          "marquee": true
+        }
+      ]
+    },
+    {
+      "categoria": "devops",
+      "descricao": "Bases de infraestrutura que conheco",
+      "items": [
+        {
+          "nome": "docker",
+          "slug_icone": "docker",
+          "marquee": true
+        },
+        {
+          "nome": "git",
+          "slug_icone": "git",
+          "marquee": true
+        },
+        {
+          "nome": "digitalocean",
+          "slug_icone": "digitalocean",
+          "marquee": true
+        },
+        {
+          "nome": "gc",
+          "slug_icone": "googlecloud",
+          "marquee": true
+        },
+        {
+          "nome": "github",
+          "slug_icone": "github",
+          "marquee": true
+        },
+        {
+          "nome": "linux",
+          "slug_icone": "linux",
+          "marquee": true
+        }
+      ]
+    },
+    {
+      "categoria": "Engenharia & Conceitos",
+      "descricao": "Fundamentos que aplico na estruturação das soluções.",
+      "items": [
+        {
+          "nome": "Arquitetura em Camadas",
+          "slug_icone": null,
+          "marquee": false
+        },
+        {
+          "nome": "Engenharia de Requisitos",
+          "slug_icone": null,
+          "marquee": false
+        },
+        {
+          "nome": "APIs RESTful & Webhooks",
+          "slug_icone": null,
+          "marquee": false
+        },
+        {
+          "nome": "Modelagem Relacional (SQL)",
+          "slug_icone": null,
+          "marquee": false
+        }
+      ]
+    }
+  ],
+  "textos_secoes": {
+    "skills": {
+      "titulo": "Tecnologias",
+      "descricao": "As ferramentas que uso no dia a dia para entregar cada projeto."
+    },
+    "projetos": {
+      "titulo": "Estudos de Caso & Portfólio",
+      "descricao": "Sistemas desenvolvidos, decisões arquiteturais tomadas e resultados entregues."
+    },
+    "depoimentos": {
+      "titulo": "Depoimentos & Validações",
+      "descricao": "O que clientes reais dizem sobre a entrega dos projetos."
+    },
+    "ticket_form": {
+      "titulo": "Vamos tirar sua ideia do papel?",
+      "descricao": "Preencha o formulário abaixo com os detalhes da sua demanda e retornarei em até 24 horas."
+    },
+    "contato": {
+      "titulo": "Prefere outro canal?",
+      "descricao": "Me mande um e-mail ou me encontre nas redes. Respondo todas as mensagens."
+    }
+  }
+}
