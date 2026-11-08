@@ -22,17 +22,30 @@ async function lerArquivo(): Promise<SiteContent> {
   return siteContentSchema.parse(JSON.parse(await readFile(CONTENT_FILE, 'utf8')));
 }
 
+// No GitHub Pages o site fica em /site-portifolio: links internos tipo "/docs/curriculo.pdf"
+// precisam desse prefixo. Em dev o prefixo é vazio e nada muda.
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+const comBase = (url: string) => (BASE && url.startsWith('/') && !url.startsWith('//') ? BASE + url : url);
+function aplicarBase(c: SiteContent): SiteContent {
+  if (!BASE) return c;
+  return {
+    ...c,
+    perfil: { ...c.perfil, avatar_url: c.perfil.avatar_url && comBase(c.perfil.avatar_url) },
+    links_sociais: c.links_sociais.map((l) => ({ ...l, url: comBase(l.url) })),
+  };
+}
+
 export async function getContent(): Promise<SiteContent> {
   'use cache';
   cacheTag(CONTENT_TAG);
   cacheLife('max');
-  if (USE_MOCKS) return lerArquivo();
+  if (USE_MOCKS) return aplicarBase(await lerArquivo());
   try {
     const res = await fetch(`${API_URL}/api/public/site-config`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return siteContentSchema.parse(await res.json());
+    return aplicarBase(siteContentSchema.parse(await res.json()));
   } catch (e) {
     console.error('[content] API indisponível, usando arquivo local:', e);
-    return lerArquivo();
+    return aplicarBase(await lerArquivo());
   }
 }

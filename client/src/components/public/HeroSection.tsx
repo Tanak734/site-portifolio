@@ -27,7 +27,7 @@ export default async function HeroSection() {
 
         <h1 className="max-w-4xl text-4xl leading-[1.08] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
           {perfil.headline}
-          <span className="mt-[0.18em] block pb-[0.3em]">
+          <span className="mt-[0.18em] block pb-[0.1em]">
             <Rotator words={perfil.palavras_rotativas} />
           </span>
         </h1>
@@ -39,11 +39,11 @@ export default async function HeroSection() {
           <StarBorder
             as="a"
             href={perfil.cta_principal.url}
-            color="#f0a070"
-            trailColor="#e0844f"
-            backgroundColor="#b4501c"
-            textColor="#fff4ec"
-            borderColor="rgba(255, 244, 236, 0.18)"
+            color="#d4ecdb"
+            trailColor="#a9d1b5"
+            backgroundColor="var(--primary)"
+            textColor="var(--primary-foreground)"
+            borderColor="color-mix(in srgb, var(--primary-foreground) 18%, transparent)"
             radius={999}
             duration={4}
             hover="lap"

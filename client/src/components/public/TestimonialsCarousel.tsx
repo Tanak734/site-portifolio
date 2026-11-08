@@ -14,7 +14,7 @@ export type TestimonialCard = {
 
 // Tons planos alternados (sem degradê)
 const TONS = ['bg-tone-1', 'bg-tone-2', 'bg-tone-3'];
-const VELOCIDADE = 22; // px por segundo — rolagem automática lenta
+const VELOCIDADE = 45; // px por segundo — rolagem automática
 const RETOMAR_APOS = 2500; // ms parado depois de uma interação
 
 /**
@@ -22,7 +22,8 @@ const RETOMAR_APOS = 2500; // ms parado depois de uma interação
  * - rola sozinha devagar;
  * - arrastável (mouse) e com rolagem nativa (touch/trackpad);
  * - setas para avançar/voltar um card;
- * - pausa no hover, durante o arraste e quando está fora da tela.
+ * - pausa no hover, durante o arraste e quando está fora da tela;
+ * - anima mesmo com prefers-reduced-motion (decisão de design; pausa no hover e tem setas).
  */
 export default function TestimonialsCarousel({ cards }: { cards: TestimonialCard[] }) {
   const trilho = useRef<HTMLDivElement>(null);
@@ -31,8 +32,6 @@ export default function TestimonialsCarousel({ cards }: { cards: TestimonialCard
   useEffect(() => {
     const el = trilho.current;
     if (!el) return;
-    const reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     let pos = el.scrollLeft;
     let ultimo = performance.now();
     let raf = 0;
@@ -70,7 +69,7 @@ export default function TestimonialsCarousel({ cards }: { cards: TestimonialCard
         pos = embrulhar(tween.de + (tween.para - tween.de) * ease);
         aplicar();
         if (k === 1) tween = null;
-      } else if (!reduzir && !hover && !arraste && visivel && agora > pausadoAte) {
+      } else if (!hover && !arraste && visivel && agora > pausadoAte) {
         pos = embrulhar(pos + VELOCIDADE * dt);
         aplicar();
       }
@@ -168,42 +167,40 @@ export default function TestimonialsCarousel({ cards }: { cards: TestimonialCard
       </li>
     ));
 
+  // Setas de vidro sobre as pontas da faixa
+  const seta =
+    'absolute top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-background/35 text-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.18),0_8px_24px_-8px_rgb(0_0_0/0.5)] backdrop-blur-md backdrop-saturate-150 transition hover:scale-105 hover:bg-background/55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:size-12';
+
   return (
     <div>
-      <div
-        ref={trilho}
-        className="cursor-grab overflow-x-auto px-4 pb-2 [scrollbar-width:none] data-[arrastando]:cursor-grabbing sm:px-6 [&::-webkit-scrollbar]:hidden"
-        aria-label="Depoimentos de clientes (rolagem automática; arraste ou use as setas)"
-        role="region"
-      >
-        <ul className="flex w-max gap-3">
-          {lista(0)}
-          {lista(1)}
-        </ul>
+      <div className="relative">
+        <div
+          ref={trilho}
+          className="cursor-grab overflow-x-auto px-4 pb-2 [scrollbar-width:none] data-[arrastando]:cursor-grabbing sm:px-6 [&::-webkit-scrollbar]:hidden"
+          aria-label="Depoimentos de clientes (rolagem automática; arraste ou use as setas)"
+          role="region"
+        >
+          <ul className="flex w-max gap-3">
+            {lista(0)}
+            {lista(1)}
+          </ul>
+        </div>
+        <button type="button" onClick={() => moverRef.current(-1)} aria-label="Depoimento anterior" className={`${seta} left-3 sm:left-6`}>
+          <ArrowLeft className="size-5" />
+        </button>
+        <button type="button" onClick={() => moverRef.current(1)} aria-label="Próximo depoimento" className={`${seta} right-3 sm:right-6`}>
+          <ArrowRight className="size-5" />
+        </button>
       </div>
 
-      <div className="mx-auto mt-8 flex max-w-5xl items-center justify-between px-4 sm:px-6">
-        <a href="#contato" className="text-sm text-muted-foreground underline-offset-4 transition hover:text-brand hover:underline">
-          Quero ser o próximo →
+      <div className="mt-10 flex justify-center px-4">
+        <a
+          href="#contato"
+          className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-[0_10px_30px_-10px_var(--primary)] transition hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          Quero ser o próximo
+          <span className="transition-transform group-hover:translate-x-0.5">→</span>
         </a>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => moverRef.current(-1)}
-            aria-label="Depoimento anterior"
-            className="grid size-10 place-items-center rounded-full border text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          >
-            <ArrowLeft className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => moverRef.current(1)}
-            aria-label="Próximo depoimento"
-            className="grid size-10 place-items-center rounded-full border text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          >
-            <ArrowRight className="size-4" />
-          </button>
-        </div>
       </div>
     </div>
   );

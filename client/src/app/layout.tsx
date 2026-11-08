@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#faf6f1' },
-    { media: '(prefers-color-scheme: dark)', color: '#110d0a' },
+    { media: '(prefers-color-scheme: light)', color: '#f5f7f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f1311' },
   ],
 };
 
@@ -30,7 +30,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* suppressHydrationWarning: extensões do navegador (bloqueadores de anúncio etc.) às vezes
+            reescrevem <script> do <head> antes do React hidratar; o script já rodou, então ignoramos. */}
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-dvh overflow-x-hidden font-sans">{children}</body>
     </html>

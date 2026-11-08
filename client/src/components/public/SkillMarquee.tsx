@@ -20,7 +20,7 @@ export default function SkillMarquee({ skills }: { skills: MarqueeSkill[] }) {
     <div className="pointer-events-none select-none" aria-hidden="true">
       <LogoLoop
         logos={logos}
-        speed={40}
+        speed={75}
         logoHeight={64}
         gap={20}
         pauseOnHover={false}
@@ -28,6 +28,7 @@ export default function SkillMarquee({ skills }: { skills: MarqueeSkill[] }) {
         draggable={false}
         labels="none"
         fadeOut={false}
+        ignoreReducedMotion
         ariaLabel="Tecnologias que utilizo"
       />
     </div>

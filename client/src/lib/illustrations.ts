@@ -4,10 +4,18 @@ import 'server-only';
 import { createAvatar } from '@dicebear/core';
 import { notionists } from '@dicebear/collection';
 
+// Duotone na paleta Sálvia: só duas cores no desenho inteiro.
+const TINTA = '#23493a'; // traço (no lugar do preto)
+const FUNDO = '#d4ecdb'; // fundo e preenchimentos (no lugar do branco)
+
 export function ilustracaoCliente(seed: string): string {
-  return createAvatar(notionists, {
+  const svg = createAvatar(notionists, {
     seed,
-    backgroundColor: ['e0844f', 'c76a3a', 'd99a6c', 'b4501c'],
+    backgroundColor: [FUNDO.slice(1)],
     backgroundType: ['solid'],
-  }).toDataUri();
+  })
+    .toString()
+    .replace(/"#000"/g, `"${TINTA}"`)
+    .replace(/"#fff"/g, `"${FUNDO}"`);
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }

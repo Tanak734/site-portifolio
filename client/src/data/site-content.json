@@ -145,17 +145,17 @@
           "marquee": true
         },
         {
-          "nome": "mongodb",
+          "nome": "MongoDB",
           "slug_icone": "mongodb",
           "marquee": true
         },
         {
-          "nome": "mariadb",
+          "nome": "MariaDB",
           "slug_icone": "mariadb",
           "marquee": true
         },
         {
-          "nome": "redis",
+          "nome": "Redis",
           "slug_icone": "redis",
           "marquee": true
         }
@@ -176,7 +176,7 @@
           "marquee": true
         },
         {
-          "nome": "next",
+          "nome": "Next.js",
           "slug_icone": "nextdotjs",
           "marquee": true
         }
@@ -192,27 +192,27 @@
           "marquee": true
         },
         {
-          "nome": "git",
+          "nome": "Git",
           "slug_icone": "git",
           "marquee": true
         },
         {
-          "nome": "digitalocean",
+          "nome": "Digital Ocean",
           "slug_icone": "digitalocean",
           "marquee": true
         },
         {
-          "nome": "gc",
+          "nome": "Google Cloud",
           "slug_icone": "googlecloud",
           "marquee": true
         },
         {
-          "nome": "github",
+          "nome": "Github",
           "slug_icone": "github",
           "marquee": true
         },
         {
-          "nome": "linux",
+          "nome": "Linux",
           "slug_icone": "linux",
           "marquee": true
         }

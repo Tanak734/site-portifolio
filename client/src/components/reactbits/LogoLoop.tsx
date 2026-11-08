@@ -47,6 +47,8 @@ export interface LogoLoopProps {
   draggable?: boolean;
   scrollBoost?: number;
   intro?: boolean;
+  /** Anima mesmo com prefers-reduced-motion: reduce (use só em faixas decorativas). */
+  ignoreReducedMotion?: boolean;
   renderItem?: (item: LogoItem, key: React.Key) => React.ReactNode;
   ariaLabel?: string;
   className?: string;
@@ -68,6 +70,7 @@ interface LoopConfig {
   draggable: boolean;
   scrollBoost: number;
   intro: boolean;
+  ignoreReducedMotion: boolean;
   scaleOnHover: boolean;
   labels: string;
   links: boolean;
@@ -297,7 +300,7 @@ const createEngine = (
     active: null,
     raf: 0,
     last: 0,
-    reduced: !!query?.matches,
+    reduced: !config.current.ignoreReducedMotion && !!query?.matches,
     destroyed: false
   };
 
@@ -976,7 +979,7 @@ const createEngine = (
   };
 
   const onMotion = () => {
-    st.reduced = !!query?.matches;
+    st.reduced = !config.current.ignoreReducedMotion && !!query?.matches;
     wake();
   };
 
@@ -1094,6 +1097,7 @@ export const LogoLoop = memo<LogoLoopProps>(
     draggable = true,
     scrollBoost = 0,
     intro = true,
+    ignoreReducedMotion = false,
     renderItem,
     ariaLabel = 'Partner logos',
     className,
@@ -1122,6 +1126,7 @@ export const LogoLoop = memo<LogoLoopProps>(
       draggable,
       scrollBoost,
       intro,
+      ignoreReducedMotion,
       scaleOnHover,
       labels,
       links: logos.some(item => item.href)

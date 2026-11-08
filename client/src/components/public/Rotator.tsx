@@ -1,52 +1,85 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { Fragment, useEffect, useState } from 'react';
+
+const GLYPHS = 'abcdefghijklmnopqrstuvwxyz<>/{}[]=+*#01';
+const FRAMES = 30; // quadros da decodificação
+const FRAME_MS = 40; // ~1,2 s para resolver a frase inteira
+
+type Cell = { ch: string; glyph: boolean };
+const plain = (s: string): Cell[] => [...s].map((ch) => ({ ch, glyph: false }));
 
 /**
- * Frases em formato de baralho: o cartão da frente sobe e vai para o fim do monte,
- * e o próximo sobe da pilha para a frente. Repete em loop.
- * Sem aleatoriedade no render → compatível com o prerender do Cache Components.
+ * Frases que se "decodificam": a cada troca, as letras embaralham como código e se
+ * resolvem da esquerda para a direita na frase nova. Repete em loop.
+ * Só troca caracteres (nada se desloca), então roda mesmo com prefers-reduced-motion.
+ * A aleatoriedade fica só nos timers do efeito → o render inicial é determinístico
+ * e compatível com o prerender do Cache Components.
  */
 export default function Rotator({
   words,
   className,
-  interval = 2800,
+  interval = 3800,
 }: {
   words: string[];
   className?: string;
   interval?: number;
 }) {
   const [i, setI] = useState(0);
-  const reduzir = useReducedMotion();
+  const [cells, setCells] = useState<Cell[]>(() => plain(words[0] ?? ''));
 
   useEffect(() => {
     if (words.length < 2) return;
-    const id = setInterval(() => setI((v) => (v + 1) % words.length), interval);
-    return () => clearInterval(id);
-  }, [words.length, interval]);
+    let idx = 0;
+    let decoding: ReturnType<typeof setInterval> | undefined;
 
-  const card = 'rounded-[0.35em] border px-[0.32em] pb-[0.08em]';
+    const troca = setInterval(() => {
+      idx = (idx + 1) % words.length;
+      const alvo = words[idx];
+      const chars = [...alvo];
+      let frame = 0;
+      setI(idx);
+      clearInterval(decoding);
+      decoding = setInterval(() => {
+        frame++;
+        if (frame >= FRAMES) {
+          clearInterval(decoding);
+          setCells(plain(alvo));
+          return;
+        }
+        // as 4 primeiras posições ficam embaralhadas um pouco antes de começar a revelar
+        const revelado = Math.floor((frame / FRAMES) * (chars.length + 4)) - 4;
+        setCells(
+          chars.map((ch, k) =>
+            ch === ' ' || k <= revelado ? { ch, glyph: false } : { ch: GLYPHS[Math.floor(Math.random() * GLYPHS.length)], glyph: true }
+          )
+        );
+      }, FRAME_MS);
+    }, interval);
+
+    return () => {
+      clearInterval(troca);
+      clearInterval(decoding);
+    };
+  }, [words, interval]);
 
   return (
-    <span className={`relative inline-grid max-w-full align-top [perspective:900px] ${className ?? ''}`}>
-      {/* Pilha atrás (2 cartões) */}
-      <span aria-hidden="true" className={`${card} absolute inset-0 translate-y-[0.22em] scale-x-[0.94] border-border bg-tone-1`} />
-      <span aria-hidden="true" className={`${card} absolute inset-0 translate-y-[0.11em] scale-x-[0.97] border-border bg-tone-2`} />
-
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.span
-          key={i}
-          layout
-          className={`${card} relative border-primary/40 bg-tone-3 text-brand [transform-origin:50%_100%]`}
-          initial={reduzir ? { opacity: 0 } : { y: '0.22em', scale: 0.94, opacity: 0 }}
-          animate={{ y: 0, scale: 1, opacity: 1, rotateX: 0 }}
-          exit={reduzir ? { opacity: 0 } : { y: '-55%', rotateX: 35, scale: 0.96, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 28, opacity: { duration: 0.25 } }}
-        >
-          {words[i]}
-        </motion.span>
-      </AnimatePresence>
+    <span className={`relative inline-block max-w-full align-top ${className ?? ''}`}>
+      <span className="sr-only">{words[i]}</span>
+      <span
+        aria-hidden="true"
+        className="inline-block rounded-[0.35em] border border-primary/40 bg-tone-3 px-[0.32em] pb-[0.08em] text-brand"
+      >
+        {cells.map((c, k) =>
+          c.glyph ? (
+            <span key={k} className="text-brand/45">
+              {c.ch}
+            </span>
+          ) : (
+            <Fragment key={k}>{c.ch}</Fragment>
+          )
+        )}
+      </span>
     </span>
   );
 }

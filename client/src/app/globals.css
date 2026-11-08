@@ -46,29 +46,29 @@
 }
 
 :root {
-  --background: #faf6f1;
-  --foreground: #1f1711;
+  --background: #f5f7f5;
+  --foreground: #141b16;
   --card: #ffffff;
-  --card-foreground: #1f1711;
+  --card-foreground: #141b16;
   --popover: #ffffff;
-  --popover-foreground: #1f1711;
-  --primary: #b4501c;            /* laranja queimado (botões) */
-  --primary-foreground: #fff4ec;
-  --secondary: #f1e9e0;
-  --secondary-foreground: #1f1711;
-  --muted: #f1e9e0;
-  --muted-foreground: #6b5a4b;
-  --accent: #ede3d8;             /* hover de superfícies */
-  --accent-foreground: #1f1711;
+  --popover-foreground: #141b16;
+  --primary: #3f6e51;            /* verde-sálvia (botões) */
+  --primary-foreground: #f2fbf5;
+  --secondary: #e8eee9;
+  --secondary-foreground: #141b16;
+  --muted: #e8eee9;
+  --muted-foreground: #526157;
+  --accent: #dce6df;             /* hover de superfícies */
+  --accent-foreground: #141b16;
   --destructive: #c43a2b;
-  --border: #e6dacd;
-  --input: #e6dacd;
-  --ring: #b4501c;
-  --brand: #a3441a;              /* laranja para texto sobre fundo claro */
-  --subtle: #857261;
-  --tone-1: #f6efe7;
-  --tone-2: #f1e7dc;
-  --tone-3: #ebdfd1;
+  --border: #d8e1da;
+  --input: #d8e1da;
+  --ring: #3f6e51;
+  --brand: #355f45;              /* sálvia para texto sobre fundo claro */
+  --subtle: #718076;
+  --tone-1: #eef3ef;
+  --tone-2: #e6ede8;
+  --tone-3: #dce6df;
   --ok: #047857;
   --wait: #b45309;
   --radius: 0.75rem;
@@ -76,29 +76,29 @@
 }
 
 .dark {
-  --background: #110d0a;
-  --foreground: #f3ece4;
-  --card: #18130f;
-  --card-foreground: #f3ece4;
-  --popover: #18130f;
-  --popover-foreground: #f3ece4;
-  --primary: #b4501c;
-  --primary-foreground: #fff4ec;
-  --secondary: #221a14;
-  --secondary-foreground: #f3ece4;
-  --muted: #221a14;
-  --muted-foreground: #a69584;
-  --accent: #2a2019;
-  --accent-foreground: #f3ece4;
+  --background: #0f1311;
+  --foreground: #e8eee9;
+  --card: #151a17;
+  --card-foreground: #e8eee9;
+  --popover: #151a17;
+  --popover-foreground: #e8eee9;
+  --primary: #7aa98b;            /* no escuro o botão é claro, com texto escuro */
+  --primary-foreground: #0b1a11;
+  --secondary: #1c231f;
+  --secondary-foreground: #e8eee9;
+  --muted: #1c231f;
+  --muted-foreground: #9aa89f;
+  --accent: #1e2721;
+  --accent-foreground: #e8eee9;
   --destructive: #dc4a3a;
-  --border: #2b221b;
-  --input: #2b221b;
-  --ring: #b4501c;
-  --brand: #e0844f;              /* laranja para texto sobre fundo escuro */
-  --subtle: #7d6d5f;
-  --tone-1: #1f1813;
-  --tone-2: #271e17;
-  --tone-3: #2e231b;
+  --border: #252e29;
+  --input: #252e29;
+  --ring: #7aa98b;
+  --brand: #a9d1b5;              /* sálvia para texto sobre fundo escuro */
+  --subtle: #6c7a71;
+  --tone-1: #18201b;
+  --tone-2: #1e2721;
+  --tone-3: #252f28;
   --ok: #34d399;
   --wait: #fbbf24;
   color-scheme: dark;
