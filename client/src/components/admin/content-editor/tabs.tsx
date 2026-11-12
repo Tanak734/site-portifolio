@@ -1,7 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import Icon from '@/components/public/Icon';
-import { ICONES_SOCIAIS, type SiteContent } from '@/lib/content-schema';
+import ServiceIcon, { SERVICE_ICONS } from '@/components/public/ServiceIcon';
+import { ICONES_SERVICO, ICONES_SOCIAIS, type SiteContent } from '@/lib/content-schema';
+import { Info } from 'lucide-react';
 import { useState } from 'react';
 import type { TechIconData } from '@/lib/tech-icon-color';
 import { Bloco, ObjectList, StringList, Switch, TextArea, TextField } from './fields';
@@ -27,7 +30,8 @@ export function PerfilTab({ c, set }: TabProps) {
           <TextField label="Cargo" path="perfil.cargo" value={p.cargo} onChange={(v) => up({ cargo: v })} />
           <TextField label="Localização" path="perfil.localizacao" value={p.localizacao} onChange={(v) => up({ localizacao: v })} />
         </div>
-        <TextField label="Foto / avatar (URL)" hint="Opcional. Ainda não é exibido no site." path="perfil.avatar_url" value={p.avatar_url} onChange={(v) => up({ avatar_url: v })} />
+        <TextField label="Foto / avatar (URL)" hint="Ex.: /images/avatar.jpg (coloque o arquivo em client/public/images) ou um link https://." path="perfil.avatar_url" value={p.avatar_url} onChange={(v) => up({ avatar_url: v })} />
+        <Switch label="Exibir foto na seção “Sobre”" hint="Desligado, a seção mostra só nome, cargo e localização." checked={p.exibir_foto} onChange={(v) => up({ exibir_foto: v })} />
       </Bloco>
 
       <Bloco titulo="Disponibilidade" descricao="Selo no topo da página inicial: verde quando disponível, âmbar (fila de espera) quando não.">
@@ -68,14 +72,35 @@ export function PerfilTab({ c, set }: TabProps) {
 type Experiencia = SiteContent['carreira']['experiencias'][number];
 type Formacao = SiteContent['carreira']['formacao'][number];
 
+type Numero = SiteContent['carreira']['numeros'][number];
+
 export function CarreiraTab({ c, set }: TabProps) {
   const k = c.carreira;
+  const o = c.objetivos_profissionais;
   const up = (patch: Partial<SiteContent['carreira']>) => set('carreira', { ...k, ...patch });
+  const upObj = (patch: Partial<SiteContent['objetivos_profissionais']>) => set('objetivos_profissionais', { ...o, ...patch });
   return (
     <>
-      <Bloco titulo="Apresentação" descricao="Seção “Sobre” da página inicial.">
+      <Bloco titulo="Apresentação" descricao="Seção “Sobre” da página inicial. Nome, cargo, localização e foto vêm da aba Perfil.">
         <TextField label="Título da seção" path="carreira.titulo" value={k.titulo} onChange={(v) => up({ titulo: v })} />
         <TextArea label="Resumo da carreira" rows={5} path="carreira.resumo" value={k.resumo} onChange={(v) => up({ resumo: v })} />
+        <TextArea label="Missão" hint="Frase em destaque, com a barra verde ao lado." rows={2} path="objetivos_profissionais.missao" value={o.missao} onChange={(v) => upObj({ missao: v })} />
+      </Bloco>
+
+      <Bloco titulo="Números" descricao="Até 4 destaques curtos abaixo da missão. Deixe vazio para esconder.">
+        <ObjectList<Numero>
+          items={k.numeros}
+          onChange={(v) => up({ numeros: v })}
+          novo={() => ({ valor: '', rotulo: '' })}
+          titulo={(n) => [n.valor, n.rotulo].filter(Boolean).join(' ')}
+          addLabel="Adicionar número"
+          render={(n, i, patch) => (
+            <div className="grid gap-5 sm:grid-cols-[1fr_2fr]">
+              <TextField label="Valor" placeholder="10+" path={`carreira.numeros.${i}.valor`} value={n.valor} onChange={(v) => patch({ valor: v })} />
+              <TextField label="Rótulo" placeholder="projetos entregues" path={`carreira.numeros.${i}.rotulo`} value={n.rotulo} onChange={(v) => patch({ rotulo: v })} />
+            </div>
+          )}
+        />
       </Bloco>
 
       <Bloco titulo="Experiência" descricao="Linha do tempo, na ordem em que aparece aqui.">
@@ -115,24 +140,9 @@ export function CarreiraTab({ c, set }: TabProps) {
           )}
         />
       </Bloco>
-    </>
-  );
-}
 
-/* ───────────── Objetivos ───────────── */
-export function ObjetivosTab({ c, set }: TabProps) {
-  const o = c.objetivos_profissionais;
-  const up = (patch: Partial<SiteContent['objetivos_profissionais']>) => set('objetivos_profissionais', { ...o, ...patch });
-  return (
-    <>
-      <Bloco titulo="Missão" descricao="Frase em destaque na seção “Sobre”.">
-        <TextArea label="Missão" rows={2} path="objetivos_profissionais.missao" value={o.missao} onChange={(v) => up({ missao: v })} />
-      </Bloco>
-      <Bloco titulo="Foco atual" descricao="Cartão “Foco atual” logo abaixo da trajetória.">
-        <TextField label="Título" path="objetivos_profissionais.titulo" value={o.titulo} onChange={(v) => up({ titulo: v })} />
-        <TextArea label="Subtítulo" rows={2} path="objetivos_profissionais.subtitulo" value={o.subtitulo} onChange={(v) => up({ subtitulo: v })} />
-        <StringList label="Metas atuais" hint="Numeradas na ordem da lista." path="objetivos_profissionais.metas_atuais" value={o.metas_atuais} onChange={(v) => up({ metas_atuais: v })} addLabel="Adicionar meta" />
-        <StringList label="Interesses técnicos" path="objetivos_profissionais.interesses_tecnicos" value={o.interesses_tecnicos} onChange={(v) => up({ interesses_tecnicos: v })} addLabel="Adicionar interesse" />
+      <Bloco titulo="Estudando agora" descricao="Etiquetas no fim da coluna de trajetória. Deixe vazio para esconder.">
+        <StringList label="Temas" path="objetivos_profissionais.interesses_tecnicos" value={o.interesses_tecnicos} onChange={(v) => upObj({ interesses_tecnicos: v })} addLabel="Adicionar tema" />
       </Bloco>
     </>
   );
@@ -200,7 +210,7 @@ export function TecnologiasTab({ c, set, icones: inicial, categoriasIcones }: Ta
   return (
     <Bloco
       titulo="Tecnologias por categoria"
-      descricao="Seção “Stack”. Itens com “Na faixa animada” também aparecem na faixa de ícones abaixo do Hero."
+      descricao="Seu catálogo de tecnologias. Itens com “Na faixa animada” aparecem na faixa de ícones abaixo do Hero; qualquer item pode ser marcado nos cartões da aba Serviços."
     >
       <ObjectList<Categoria>
         items={c.categorias_skills}
@@ -252,31 +262,206 @@ export function TecnologiasTab({ c, set, icones: inicial, categoriasIcones }: Ta
       />
       <p className="text-xs text-subtle">
         Clique no campo “Ícone” para buscar no catálogo de ~700 logos de tecnologia (Simple Icons). Na faixa animada eles aparecem na cor oficial da marca;
-        na seção Stack, em tom neutro.
+        nos cartões de serviço, em tom neutro.
       </p>
     </Bloco>
   );
 }
 
-/* ───────────── Textos das seções ───────────── */
-const SECOES: { key: keyof SiteContent['textos_secoes']; nome: string; onde: string }[] = [
-  { key: 'projetos', nome: 'Portfólio', onde: 'Título acima dos cards de projetos' },
-  { key: 'skills', nome: 'Tecnologias', onde: 'Seção “Stack”' },
-  { key: 'depoimentos', nome: 'Depoimentos', onde: 'Acima do carrossel de depoimentos' },
-  { key: 'ticket_form', nome: 'Contato · formulário', onde: 'Título grande da seção de contato' },
-  { key: 'contato', nome: 'Contato · outros canais', onde: 'Acima dos cartões de e-mail/LinkedIn/GitHub' },
-];
+/* ───────────── Serviços & processo ───────────── */
+type Servico = SiteContent['servicos'][number];
+type Etapa = SiteContent['processo'][number];
 
-export function TextosTab({ c, set }: TabProps) {
-  const t = c.textos_secoes;
+export function ServicosPanel({ c, set }: TabProps) {
+  const tecnologias = [...new Set(c.categorias_skills.flatMap((cat) => cat.items.map((s) => s.nome)).filter(Boolean))];
   return (
     <>
-      {SECOES.map(({ key, nome, onde }) => (
-        <Bloco key={key} titulo={nome} descricao={onde}>
-          <TextField label="Título" path={`textos_secoes.${key}.titulo`} value={t[key].titulo} onChange={(v) => set('textos_secoes', { ...t, [key]: { ...t[key], titulo: v } })} />
-          <TextArea label="Descrição" rows={2} path={`textos_secoes.${key}.descricao`} value={t[key].descricao} onChange={(v) => set('textos_secoes', { ...t, [key]: { ...t[key], descricao: v } })} />
-        </Bloco>
-      ))}
+      <SecaoTextos c={c} set={set} chave="servicos" />
+      <Bloco titulo="Cartões de serviço" descricao="Funcionam melhor em número par (2, 4 ou 6).">
+        <ObjectList<Servico>
+          items={c.servicos}
+          onChange={(v) => set('servicos', v)}
+          novo={() => ({ icone: 'code', titulo: '', descricao: '', entregas: [], tecnologias: [] })}
+          titulo={(s) => s.titulo}
+          addLabel="Adicionar serviço"
+          render={(s, i, patch) => (
+            <>
+              <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
+                <TextField label="Título" path={`servicos.${i}.titulo`} value={s.titulo} onChange={(v) => patch({ titulo: v })} />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium" htmlFor={`servico-icone-${i}`}>Ícone</label>
+                  <div className="flex items-center gap-2">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg border text-brand">
+                      <ServiceIcon name={s.icone} className="size-4" />
+                    </span>
+                    <select
+                      id={`servico-icone-${i}`}
+                      value={s.icone}
+                      onChange={(e) => patch({ icone: e.target.value as Servico['icone'] })}
+                      className="h-10 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-primary/70"
+                    >
+                      {ICONES_SERVICO.map((ic) => (
+                        <option key={ic} value={ic}>{SERVICE_ICONS[ic].label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <TextArea label="Descrição" rows={2} path={`servicos.${i}.descricao`} value={s.descricao} onChange={(v) => patch({ descricao: v })} />
+              <StringList label="O que está incluso" hint="Itens com ✓ no cartão. Curtos, até 3 ou 4." path={`servicos.${i}.entregas`} value={s.entregas} onChange={(v) => patch({ entregas: v })} addLabel="Adicionar item" />
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">Tecnologias</legend>
+                <p className="text-xs text-subtle">Vêm da aba Tecnologias. Aparecem no rodapé do cartão, na ordem em que você marcar.</p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {tecnologias.map((nome) => {
+                    const ativo = s.tecnologias.includes(nome);
+                    return (
+                      <button
+                        key={nome}
+                        type="button"
+                        aria-pressed={ativo}
+                        onClick={() => patch({ tecnologias: ativo ? s.tecnologias.filter((t) => t !== nome) : [...s.tecnologias, nome] })}
+                        className={`rounded-md border px-2.5 py-1 text-xs transition ${
+                          ativo ? 'border-primary/60 bg-primary/15 text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }`}
+                      >
+                        {nome}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            </>
+          )}
+        />
+      </Bloco>
+    </>
+  );
+}
+
+export function ProcessoPanel({ c, set }: TabProps) {
+  return (
+    <>
+      <SecaoTextos c={c} set={set} chave="processo" />
+      <Bloco titulo="Etapas" descricao="Numeradas na ordem da lista. Ideal: 3 a 5 etapas.">
+        <ObjectList<Etapa>
+          items={c.processo}
+          onChange={(v) => set('processo', v)}
+          novo={() => ({ titulo: '', descricao: '', duracao: '' })}
+          titulo={(e, i) => `${String(i + 1).padStart(2, '0')} · ${e.titulo}`}
+          addLabel="Adicionar etapa"
+          render={(e, i, patch) => (
+            <>
+              <div className="grid gap-5 sm:grid-cols-[2fr_1fr]">
+                <TextField label="Título" path={`processo.${i}.titulo`} value={e.titulo} onChange={(v) => patch({ titulo: v })} />
+                <TextField label="Duração / etiqueta" hint="Opcional. Ex.: até 3 dias" path={`processo.${i}.duracao`} value={e.duracao} onChange={(v) => patch({ duracao: v })} />
+              </div>
+              <TextArea label="Descrição" rows={2} path={`processo.${i}.descricao`} value={e.descricao} onChange={(v) => patch({ descricao: v })} />
+            </>
+          )}
+        />
+      </Bloco>
+    </>
+  );
+}
+
+/* ───────────── FAQ ───────────── */
+type Pergunta = SiteContent['faq'][number];
+
+export function FaqPanel({ c, set }: TabProps) {
+  return (
+    <>
+    <SecaoTextos c={c} set={set} chave="faq" />
+    <Bloco titulo="Perguntas" descricao="Também viram dados estruturados para o Google (podem aparecer direto nos resultados de busca).">
+      <ObjectList<Pergunta>
+        items={c.faq}
+        onChange={(v) => set('faq', v)}
+        novo={() => ({ pergunta: '', resposta: '' })}
+        titulo={(f) => f.pergunta}
+        addLabel="Adicionar pergunta"
+        render={(f, i, patch) => (
+          <>
+            <TextField label="Pergunta" path={`faq.${i}.pergunta`} value={f.pergunta} onChange={(v) => patch({ pergunta: v })} />
+            <TextArea label="Resposta" rows={3} path={`faq.${i}.resposta`} value={f.resposta} onChange={(v) => patch({ resposta: v })} />
+          </>
+        )}
+      />
+    </Bloco>
+    </>
+  );
+}
+
+/* ───────────── Cabeçalho (título + descrição) de cada seção ───────────── */
+type ChaveTexto = keyof SiteContent['textos_secoes'];
+
+export function SecaoTextos({ c, set, chave, descricao }: Pick<TabProps, 'c' | 'set'> & { chave: ChaveTexto; descricao?: string }) {
+  const t = c.textos_secoes;
+  const up = (patch: Partial<SiteContent['textos_secoes'][ChaveTexto]>) => set('textos_secoes', { ...t, [chave]: { ...t[chave], ...patch } });
+  return (
+    <Bloco titulo="Cabeçalho da seção" descricao={descricao ?? 'Título grande e frase de apoio acima do conteúdo.'}>
+      <TextField label="Título" path={`textos_secoes.${chave}.titulo`} value={t[chave].titulo} onChange={(v) => up({ titulo: v })} />
+      <TextArea label="Descrição" rows={2} path={`textos_secoes.${chave}.descricao`} value={t[chave].descricao} onChange={(v) => up({ descricao: v })} />
+    </Bloco>
+  );
+}
+
+function Aviso({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-start gap-2.5 rounded-xl border border-dashed bg-background px-4 py-3 text-sm text-muted-foreground">
+      <Info className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden="true" />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+/* ───────────── Projetos ───────────── */
+export function ProjetosPanel({ c, set }: TabProps) {
+  return (
+    <>
+      <SecaoTextos c={c} set={set} chave="projetos" />
+      <Aviso>
+        Os cards vêm dos projetos marcados como públicos em{' '}
+        <Link href="/admin/projetos" className="text-foreground underline underline-offset-4 hover:text-brand">Projetos</Link> — a ordem e o destaque são definidos lá.
+      </Aviso>
+    </>
+  );
+}
+
+/* ───────────── Depoimentos ───────────── */
+export function DepoimentosPanel({ c, set }: TabProps) {
+  return (
+    <>
+      <SecaoTextos c={c} set={set} chave="depoimentos" />
+      <Aviso>Os depoimentos vêm das avaliações publicadas dos clientes. Sem nenhuma publicada, a seção não aparece no site.</Aviso>
+    </>
+  );
+}
+
+/* ───────────── Contato (fixo no fim da página) ───────────── */
+export function ContatoPanel({ c, set }: TabProps) {
+  const f = c.formulario_contato;
+  const up = (patch: Partial<SiteContent['formulario_contato']>) => set('formulario_contato', { ...f, ...patch });
+  return (
+    <>
+      <SecaoTextos c={c} set={set} chave="ticket_form" descricao="Título centralizado acima do formulário. As palavras do título aparecem uma a uma ao rolar." />
+      <Bloco titulo="Formulário" descricao="Os campos (nome, empresa, telefone, e-mail e ideia) são fixos porque alimentam o funil de Ideias de Projeto.">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField label="Texto do botão" path="formulario_contato.texto_botao" value={f.texto_botao} onChange={(v) => up({ texto_botao: v })} />
+          <TextField label="Nota abaixo do botão" hint="Opcional." path="formulario_contato.nota_rodape" value={f.nota_rodape} onChange={(v) => up({ nota_rodape: v })} />
+        </div>
+        <StringList
+          label="Faixas de investimento"
+          hint="Opções do campo “Faixa de investimento”. Deixe vazio para esconder o campo."
+          path="formulario_contato.faixas_investimento"
+          value={f.faixas_investimento}
+          onChange={(v) => up({ faixas_investimento: v })}
+          addLabel="Adicionar faixa"
+        />
+      </Bloco>
+      <Bloco titulo="Depois do envio" descricao="Mensagem que substitui o formulário quando a ideia é enviada.">
+        <TextField label="Título" path="formulario_contato.sucesso_titulo" value={f.sucesso_titulo} onChange={(v) => up({ sucesso_titulo: v })} />
+        <TextArea label="Texto" rows={2} path="formulario_contato.sucesso_texto" value={f.sucesso_texto} onChange={(v) => up({ sucesso_texto: v })} />
+      </Bloco>
     </>
   );
 }

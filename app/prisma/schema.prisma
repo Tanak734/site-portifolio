@@ -1,0 +1,630 @@
+// =============================================================================
+// site-pessoal-hub · Prisma 7 + PostgreSQL 17
+// Espelho de docs/back/schema.sql (17 tabelas). Colunas ficam em snake_case
+// para os JSONs da API baterem com os tipos do front (client/src/lib/*types.ts).
+// O que o Prisma não expressa (CHECKs e índice parcial) está na migration init.
+// =============================================================================
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// 1. ENUMS
+// -----------------------------------------------------------------------------
+
+/// Funil de Ideias de Projeto
+enum StatusTicket {
+  NOVO
+  EM_CONVERSA
+  MVP_EM_ELABORACAO
+  MVP_APRESENTADO
+  ACEITO_CONVERTIDO
+  DESISTENCIA
+
+  @@map("status_ticket")
+}
+
+enum OrigemIdeia {
+  PUBLICO_SITE
+  MANUAL_ADMIN
+  FILA_ESPERA
+
+  @@map("origem_ideia")
+}
+
+enum StatusProjeto {
+  EM_ANDAMENTO
+  INATIVO
+  CONCLUIDO
+
+  @@map("status_projeto")
+}
+
+/// Como a mão de obra é cobrada. GRATUITO = pro bono (o cliente arca só com os custos dele).
+enum ModalidadeCobranca {
+  PAGO
+  DESCONTO
+  GRATUITO
+
+  @@map("modalidade_cobranca")
+}
+
+enum ComplexidadeNivel {
+  BAIXA
+  MEDIA
+  ALTA
+
+  @@map("complexidade_nivel")
+}
+
+enum TipoRequisito {
+  FUNCIONAL
+  NAO_FUNCIONAL
+  REGRA_NEGOCIO
+  RESTRICAO_TECNICA
+
+  @@map("tipo_requisito")
+}
+
+enum PrioridadeMoscow {
+  MUST_HAVE
+  SHOULD_HAVE
+  COULD_HAVE
+  WONT_HAVE
+
+  @@map("prioridade_moscow")
+}
+
+enum StatusDuvida {
+  PENDENTE
+  RESPONDIDA
+  CANCELADA
+
+  @@map("status_duvida")
+}
+
+enum StatusAdr {
+  PROPOSTO
+  ACEITO
+  REJEITADO
+  SUBSTITUIDO
+
+  @@map("status_adr")
+}
+
+enum CategoriaCusto {
+  INFRAESTRUTURA
+  DOMINIO_DNS
+  APIS_SERVICOS
+  SEGURANCA_BACKUP
+  ASSETS_DESIGN
+  LICENCAS_SOFTWARE
+  COMUNICACAO_EMAIL
+  MARKETING_ANALYTICS
+  TERCEIRIZACAO
+  IMPOSTOS_TAXAS
+  OUTROS
+
+  @@map("categoria_custo")
+}
+
+enum TipoRecorrenciaCusto {
+  UNICO
+  MENSAL
+  ANUAL
+
+  @@map("tipo_recorrencia_custo")
+}
+
+enum ResponsavelCusto {
+  CLIENTE
+  DESENVOLVEDOR
+
+  @@map("responsavel_custo")
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  CANCELADO
+
+  @@map("status_pagamento")
+}
+
+enum AutorComentario {
+  CLIENTE
+  ADMIN
+
+  @@map("autor_comentario")
+}
+
+/// Chamados de manutenção (pós-estruturação do projeto)
+enum TipoChamadoProjeto {
+  MANUTENCAO /// Correção de bug / erro em funcionalidade existente
+  ALTERACAO /// Mudança de escopo ou ajuste fino
+  MELHORIA /// Nova feature ou evolução
+  SUPORTE /// Dúvida operacional / infraestrutura
+
+  @@map("tipo_chamado_projeto")
+}
+
+enum PrioridadeChamado {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+
+  @@map("prioridade_chamado")
+}
+
+enum StatusChamadoProjeto {
+  ABERTO
+  EM_ANALISE
+  EM_EXECUCAO
+  AGUARDANDO_CLIENTE
+  RESOLVIDO
+  FECHADO
+
+  @@map("status_chamado_projeto")
+}
+
+enum StatusFila {
+  AGUARDANDO
+  NOTIFICADO
+  CONVERTIDO
+  CANCELADO
+
+  @@map("status_fila")
+}
+
+// -----------------------------------------------------------------------------
+// 2. IDENTIDADE (módulo auth)
+// -----------------------------------------------------------------------------
+
+/// 1 · Administrador único
+model Admin {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome            String    @db.VarChar(255)
+  email           String    @unique @db.VarChar(255)
+  senha_hash      String    @db.VarChar(255)
+  totp_secret     String?   @db.VarChar(255)
+  totp_enabled    Boolean   @default(false)
+  is_admin        Boolean   @default(true)
+  ultimo_login_em DateTime? @db.Timestamptz
+  ultimo_login_ip String?   @db.VarChar(45)
+  created_at      DateTime  @default(now()) @db.Timestamptz
+  updated_at      DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  dispositivos AdminDispositivo[]
+
+  @@map("admin")
+}
+
+/// 2 · Passkeys / WebAuthn e dispositivos confiáveis
+model AdminDispositivo {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admin_id         String    @db.Uuid
+  nome_dispositivo String    @db.VarChar(255)
+  credential_id    String    @unique
+  public_key       String
+  sign_count       BigInt    @default(0)
+  transports       String?   @db.VarChar(255)
+  user_agent       String?   @db.VarChar(500)
+  ip_registro      String?   @db.VarChar(45)
+  ativo            Boolean   @default(true)
+  ultimo_uso_em    DateTime? @db.Timestamptz
+  created_at       DateTime  @default(now()) @db.Timestamptz
+
+  admin Admin @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+
+  @@index([admin_id], map: "idx_admin_dispositivos_admin")
+  @@map("admin_dispositivos")
+}
+
+// -----------------------------------------------------------------------------
+// 3. CLIENTES, IDEIAS E PROJETOS
+// -----------------------------------------------------------------------------
+
+/// 3 · CRM de clientes
+model Cliente {
+  id         Int      @id @default(autoincrement())
+  nome       String   @db.VarChar(255)
+  empresa    String?  @db.VarChar(255)
+  telefone   String   @db.VarChar(255)
+  email      String?  @db.VarChar(255)
+  documento  String?  @db.VarChar(50)
+  notas      String?
+  /// Link da área do cliente (/cliente/:token) — reúne todos os projetos dele; revogável (gera outro)
+  token_portal String  @unique @default(dbgenerated("md5(((random())::text || (clock_timestamp())::text))")) @db.VarChar(64)
+  portal_ativo Boolean @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  tickets    Ticket[]
+  projetos   Projeto[]
+  avaliacoes Avaliacao[]
+
+  @@map("clientes")
+}
+
+/// 4 · Ideias de Projeto (nome físico "tickets" mantido pelos DTOs do front)
+model Ticket {
+  id                       Int          @id @default(autoincrement())
+  cliente_id               Int?
+  origem                   OrigemIdeia  @default(PUBLICO_SITE)
+  cliente_nome             String       @db.VarChar(255)
+  empresa_nome             String?      @db.VarChar(255)
+  cliente_telefone         String       @db.VarChar(255)
+  cliente_email            String?      @db.VarChar(255)
+  ideia_inicial            String
+  orcamento_previo_cliente String?      @db.VarChar(100)
+  status                   StatusTicket @default(NOVO)
+  notas_conversa           String?
+  resumo_mvp               String?
+  link_prototipo_mvp       String?      @db.VarChar(500)
+  created_at               DateTime     @default(now()) @db.Timestamptz
+  updated_at               DateTime     @default(now()) @updatedAt @db.Timestamptz
+
+  cliente     Cliente?    @relation(fields: [cliente_id], references: [id], onDelete: SetNull)
+  projeto     Projeto?
+  fila_espera FilaEspera?
+
+  @@index([status], map: "idx_tickets_status")
+  @@index([cliente_id], map: "idx_tickets_cliente")
+  @@map("tickets")
+}
+
+/// 5 · Projetos (criados direto pelo admin ou convertidos de uma ideia)
+model Projeto {
+  id                Int      @id @default(autoincrement())
+  cliente_id        Int?
+  ticket_id         Int?     @unique
+  nome              String   @db.VarChar(255)
+  categoria_projeto String?  @db.VarChar(100)
+
+  // Calculadora Júnior & esforço
+  complexidade_geral  ComplexidadeNivel @default(MEDIA)
+  fator_seguranca_jr  Decimal           @default(1.30) @db.Decimal(4, 2)
+  valor_hora_base     Decimal           @default(50.00) @db.Decimal(10, 2)
+  horas_estimadas     Decimal           @default(0) @db.Decimal(6, 2)
+  horas_gastas        Decimal           @default(0) @db.Decimal(6, 2)
+  orcamento_calculado Decimal?          @db.Decimal(10, 2)
+  orcamento_cobrado   Decimal?          @db.Decimal(10, 2)
+
+  // Modalidade de cobrança (pro bono / desconto) e impostos — CHECK 0..100 na migration
+  modalidade_cobranca ModalidadeCobranca @default(PAGO)
+  desconto_percentual Decimal            @default(0) @db.Decimal(5, 2)
+  impostos_percentual Decimal            @default(0) @db.Decimal(5, 2)
+  contrapartida       String? /// O que se recebe em troca num projeto gratuito/com desconto
+
+  // Execução, portal do cliente & chamados
+  status                StatusProjeto @default(EM_ANDAMENTO)
+  progresso             Int           @default(0) /// CHECK 0..100 na migration
+  start_date            DateTime?     @db.Date
+  end_date              DateTime?     @db.Date
+  notas_internas        String?
+  codigo_rastreio       String        @unique @default(dbgenerated("md5(((random())::text || (clock_timestamp())::text))")) @db.VarChar(64)
+  cliente_pode_comentar Boolean       @default(true)
+  aceita_chamados       Boolean       @default(true)
+
+  // Vitrine pública & NDA
+  is_publico        Boolean @default(false)
+  is_confidencial   Boolean @default(false)
+  is_destaque       Boolean @default(false)
+  resumo_nome       String? @db.VarChar(255)
+  descricao         String?
+  stacks_utilizadas String? @db.VarChar(255)
+  imagem_url        String? @db.VarChar(500)
+  live_url          String? @db.VarChar(500)
+  github_url        String? @db.VarChar(500)
+  figma_url         String? @db.VarChar(500)
+  video_url         String? @db.VarChar(500)
+  ordem             Int     @default(0)
+
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  cliente                 Cliente?                @relation(fields: [cliente_id], references: [id], onDelete: SetNull)
+  ticket                  Ticket?                 @relation(fields: [ticket_id], references: [id], onDelete: SetNull)
+  requisitos              RequisitoProjeto[]
+  duvidas                 DuvidaProjeto[]
+  avaliacao_arquitetural  AvaliacaoArquitetural?
+  adrs                    Adr[]
+  custos                  CustoProjeto[]
+  pagamentos              PagamentoProjeto[]
+  tarefas                 TarefaProjeto[]
+  comentarios             ComentarioProjeto[]
+  chamados                ChamadoProjeto[]
+  avaliacao               Avaliacao?
+
+  @@index([status], map: "idx_projetos_status")
+  @@index([cliente_id], map: "idx_projetos_cliente")
+  @@map("projetos")
+}
+
+// -----------------------------------------------------------------------------
+// 4. ENGENHARIA (requisitos, dúvidas, BI e ADRs)
+// -----------------------------------------------------------------------------
+
+/// 6 · Requisitos (RF, RNF, regras e restrições)
+model RequisitoProjeto {
+  id              Int               @id @default(autoincrement())
+  projeto_id      Int
+  codigo          String?           @db.VarChar(20)
+  tipo            TipoRequisito     @default(FUNCIONAL)
+  titulo          String            @db.VarChar(255)
+  descricao       String
+  prioridade      PrioridadeMoscow  @default(MUST_HAVE)
+  complexidade    ComplexidadeNivel @default(MEDIA)
+  horas_estimadas Decimal           @default(0) @db.Decimal(5, 2)
+  implementado    Boolean           @default(false)
+  created_at      DateTime          @default(now()) @db.Timestamptz
+
+  projeto Projeto         @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+  duvidas DuvidaProjeto[]
+  tarefas TarefaProjeto[]
+
+  @@index([projeto_id], map: "idx_requisitos_projeto")
+  @@map("requisitos_projetos")
+}
+
+/// 7 · Dúvidas e alinhamentos
+model DuvidaProjeto {
+  id           Int          @id @default(autoincrement())
+  projeto_id   Int
+  requisito_id Int?
+  duvida       String
+  resposta     String?
+  status       StatusDuvida @default(PENDENTE)
+  created_at   DateTime     @default(now()) @db.Timestamptz
+  updated_at   DateTime     @default(now()) @updatedAt @db.Timestamptz
+
+  projeto   Projeto           @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+  requisito RequisitoProjeto? @relation(fields: [requisito_id], references: [id], onDelete: SetNull)
+
+  @@index([projeto_id], map: "idx_duvidas_projeto")
+  @@map("duvidas_projetos")
+}
+
+/// 8 · Matriz de avaliação arquitetural (BI de stack) — 1 por projeto
+model AvaliacaoArquitetural {
+  id                      Int      @id @default(autoincrement())
+  projeto_id              Int      @unique
+  padrao_arquitetural     String?  @db.VarChar(100)
+  linguagem_escolhida     String?  @db.VarChar(100)
+  framework_escolhido     String?  @db.VarChar(100)
+  banco_escolhido         String?  @db.VarChar(100)
+  criterios_pesos         Json     @default("{}")
+  alternativas_comparadas Json     @default("[]")
+  justificativa_escolha   String
+  created_at              DateTime @default(now()) @db.Timestamptz
+  updated_at              DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  projeto Projeto @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+
+  @@map("avaliacoes_arquiteturais")
+}
+
+/// 9 · Architecture Decision Records (numerados por projeto)
+model Adr {
+  id            Int       @id @default(autoincrement())
+  projeto_id    Int
+  numero        Int
+  titulo        String    @db.VarChar(255)
+  status        StatusAdr @default(ACEITO)
+  contexto      String
+  decisao       String
+  consequencias String
+  created_at    DateTime  @default(now()) @db.Timestamptz
+
+  projeto Projeto @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+
+  @@unique([projeto_id, numero], map: "uq_adrs_projeto_numero")
+  @@index([projeto_id], map: "idx_adrs_projeto")
+  @@map("adrs")
+}
+
+// -----------------------------------------------------------------------------
+// 5. FINANCEIRO
+// -----------------------------------------------------------------------------
+
+/// 10 · Custos de infraestrutura e fontes de preço
+model CustoProjeto {
+  id               Int                  @id @default(autoincrement())
+  projeto_id       Int
+  descricao        String               @db.VarChar(255)
+  categoria_custo  CategoriaCusto
+  tipo_recorrencia TipoRecorrenciaCusto @default(UNICO)
+  pago_por         ResponsavelCusto     @default(CLIENTE)
+  valor            Decimal              @db.Decimal(10, 2)
+  link_fonte       String?              @db.VarChar(500)
+  comprovante_url  String?              @db.VarChar(500)
+  data_custo       DateTime             @db.Date
+  created_at       DateTime             @default(now()) @db.Timestamptz
+
+  projeto Projeto @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+
+  @@index([projeto_id], map: "idx_custos_projeto")
+  @@map("custos_projetos")
+}
+
+/// 11 · Parcelas de pagamento
+model PagamentoProjeto {
+  id              Int             @id @default(autoincrement())
+  projeto_id      Int
+  descricao       String          @db.VarChar(255)
+  valor           Decimal         @db.Decimal(10, 2)
+  data_vencimento DateTime        @db.Date
+  data_pagamento  DateTime?       @db.Date
+  status          StatusPagamento @default(PENDENTE)
+  comprovante_url String?         @db.VarChar(500)
+  created_at      DateTime        @default(now()) @db.Timestamptz
+
+  projeto Projeto @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+
+  @@index([projeto_id], map: "idx_pagamentos_projeto")
+  @@map("pagamentos_projetos")
+}
+
+// -----------------------------------------------------------------------------
+// 6. EXECUÇÃO (tarefas em 2 níveis e portal)
+// -----------------------------------------------------------------------------
+
+/// 12 · Tarefas — nível 1 (macro)
+model TarefaProjeto {
+  id              Int      @id @default(autoincrement())
+  projeto_id      Int
+  requisito_id    Int?
+  titulo          String   @db.VarChar(255)
+  descricao       String?
+  horas_estimadas Decimal  @default(0) @db.Decimal(6, 2)
+  horas_gastas    Decimal  @default(0) @db.Decimal(6, 2) /// A soma vira projetos.horas_gastas
+  concluida       Boolean  @default(false)
+  visivel_cliente Boolean  @default(true)
+  ordem           Int      @default(0)
+  created_at      DateTime @default(now()) @db.Timestamptz
+
+  projeto          Projeto             @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+  requisito        RequisitoProjeto?   @relation(fields: [requisito_id], references: [id], onDelete: SetNull)
+  checklist        ChecklistTarefa[]
+  comentarios      ComentarioProjeto[]
+  chamados_origem  ChamadoProjeto[]    @relation("ChamadoTarefaGerada")
+
+  @@index([projeto_id], map: "idx_tarefas_projeto")
+  @@index([requisito_id], map: "idx_tarefas_requisito")
+  @@map("tarefas_projetos")
+}
+
+/// 13 · Checklist — nível 2 (micro); calcula o progresso do projeto
+model ChecklistTarefa {
+  id         Int      @id @default(autoincrement())
+  tarefa_id  Int
+  item       String   @db.VarChar(255)
+  concluido  Boolean  @default(false)
+  ordem      Int      @default(0)
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  tarefa TarefaProjeto @relation(fields: [tarefa_id], references: [id], onDelete: Cascade)
+
+  @@index([tarefa_id], map: "idx_checklist_tarefa")
+  @@map("checklist_tarefas")
+}
+
+/// 14 · Comentários do portal do cliente
+model ComentarioProjeto {
+  id         Int             @id @default(autoincrement())
+  projeto_id Int
+  tarefa_id  Int?
+  autor      AutorComentario
+  mensagem   String
+  anexo_url  String?         @db.VarChar(500)
+  created_at DateTime        @default(now()) @db.Timestamptz
+
+  projeto Projeto        @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+  tarefa  TarefaProjeto? @relation(fields: [tarefa_id], references: [id], onDelete: SetNull)
+
+  @@index([projeto_id], map: "idx_comentarios_projeto")
+  @@map("comentarios_projetos")
+}
+
+// -----------------------------------------------------------------------------
+// 7. CHAMADOS DE MANUTENÇÃO
+// -----------------------------------------------------------------------------
+
+/// 15 · Chamados pós-estruturação (protocolo CHM-YYYY-NNNN)
+model ChamadoProjeto {
+  id                      Int                  @id @default(autoincrement())
+  projeto_id              Int
+  tarefa_gerada_id        Int?
+  protocolo               String               @unique @db.VarChar(30)
+  tipo                    TipoChamadoProjeto   @default(MANUTENCAO)
+  prioridade              PrioridadeChamado    @default(MEDIA)
+  status                  StatusChamadoProjeto @default(ABERTO)
+  aberto_por              AutorComentario      @default(CLIENTE)
+  solicitante_nome        String?              @db.VarChar(255)
+  solicitante_contato     String?              @db.VarChar(255)
+  titulo                  String               @db.VarChar(255)
+  descricao               String
+  anexo_url               String?              @db.VarChar(500)
+  horas_estimadas_chamado Decimal              @default(0) @db.Decimal(5, 2)
+  valor_adicional_orcado  Decimal              @default(0) @db.Decimal(10, 2)
+  notas_internas_admin    String?
+  resolvido_em            DateTime?            @db.Timestamptz
+  created_at              DateTime             @default(now()) @db.Timestamptz
+  updated_at              DateTime             @default(now()) @updatedAt @db.Timestamptz
+
+  projeto       Projeto            @relation(fields: [projeto_id], references: [id], onDelete: Cascade)
+  tarefa_gerada TarefaProjeto?     @relation("ChamadoTarefaGerada", fields: [tarefa_gerada_id], references: [id], onDelete: SetNull)
+  interacoes    InteracaoChamado[]
+
+  @@index([projeto_id], map: "idx_chamados_projeto")
+  @@index([status], map: "idx_chamados_status")
+  @@index([prioridade], map: "idx_chamados_prioridade")
+  @@map("chamados_projetos")
+}
+
+/// 16 · Mensagens dentro de um chamado
+model InteracaoChamado {
+  id              Int             @id @default(autoincrement())
+  chamado_id      Int
+  autor           AutorComentario
+  mensagem        String
+  anexo_url       String?         @db.VarChar(500)
+  visivel_cliente Boolean         @default(true)
+  created_at      DateTime        @default(now()) @db.Timestamptz
+
+  chamado ChamadoProjeto @relation(fields: [chamado_id], references: [id], onDelete: Cascade)
+
+  @@index([chamado_id], map: "idx_interacoes_chamado")
+  @@map("interacoes_chamados")
+}
+
+// -----------------------------------------------------------------------------
+// 8. VITRINE E FILA
+// -----------------------------------------------------------------------------
+
+/// 17a · Depoimentos (nota 1..5 via CHECK na migration)
+model Avaliacao {
+  id            Int      @id @default(autoincrement())
+  cliente_id    Int?
+  projeto_id    Int?     @unique
+  cliente_nome  String   @db.VarChar(255)
+  cliente_cargo String?  @db.VarChar(255)
+  empresa_nome  String?  @db.VarChar(255)
+  depoimento    String
+  nota          Int      @default(5)
+  is_publicado  Boolean  @default(true)
+  ordem         Int      @default(0)
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  cliente Cliente? @relation(fields: [cliente_id], references: [id], onDelete: SetNull)
+  projeto Projeto? @relation(fields: [projeto_id], references: [id], onDelete: SetNull)
+
+  @@map("avaliacoes")
+}
+
+/// 17b · Fila de espera "Avise-me" (e-mail único entre os AGUARDANDO via índice parcial na migration)
+model FilaEspera {
+  id                 Int        @id @default(autoincrement())
+  nome               String?    @db.VarChar(255)
+  email              String     @db.VarChar(255)
+  ideia_resumo       String?    @db.VarChar(500)
+  status             StatusFila @default(AGUARDANDO)
+  consentimento_lgpd Boolean    @default(false)
+  token_cancelamento String     @unique @default(dbgenerated("md5(((random())::text || (clock_timestamp())::text))")) @db.VarChar(64)
+  ticket_id          Int?       @unique
+  notificado_em      DateTime?  @db.Timestamptz
+  created_at         DateTime   @default(now()) @db.Timestamptz
+
+  ticket Ticket? @relation(fields: [ticket_id], references: [id], onDelete: SetNull)
+
+  @@index([status, created_at], map: "idx_fila_status_ordem")
+  @@map("fila_espera")
+}

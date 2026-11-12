@@ -1,15 +1,13 @@
-import EmConstrucao from '@/components/admin/EmConstrucao';
+import PageHeader from '@/components/admin/PageHeader';
+import ProjetosLista from '@/components/admin/projetos/ProjetosLista';
+import { getClientes, getProjetosAdmin } from '@/lib/admin-api';
 
-export default function ProjetosPage() {
+export default async function ProjetosPage() {
+  const [projetos, clientes] = await Promise.all([getProjetosAdmin(), getClientes()]);
   return (
-    <EmConstrucao
-      title="Projetos"
-      description="Projetos em andamento, inativos e concluídos."
-      itens={[
-        'Lista filtrável por status',
-        'Hub do projeto com 6 abas: Geral, Requisitos, BI/ADR, Calculadora Jr, Tarefas e Publicação',
-        'Link do Portal do Cliente (/status/[token])',
-      ]}
-    />
+    <>
+      <PageHeader title="Projetos" description="Cada projeto tem um Hub com requisitos, arquitetura, calculadora, tarefas, chamados e a publicação no portfólio." />
+      <ProjetosLista inicial={projetos} clientes={clientes} />
+    </>
   );
 }

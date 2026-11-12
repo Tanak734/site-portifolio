@@ -1,11 +1,13 @@
-import EmConstrucao from '@/components/admin/EmConstrucao';
+import PageHeader from '@/components/admin/PageHeader';
+import ClientesLista from '@/components/admin/clientes/ClientesLista';
+import { getClientes } from '@/lib/admin-api';
 
-export default function ClientesPage() {
+export default async function ClientesPage() {
+  const clientes = await getClientes();
   return (
-    <EmConstrucao
-      title="Clientes"
-      description="Base de clientes (CRM) e histórico de projetos."
-      itens={['Lista de clientes com contato e empresa', 'Histórico de projetos por cliente', 'Cadastro manual de cliente']}
-    />
+    <>
+      <PageHeader title="Clientes" description="Quem você atende: contatos, notas e o histórico de projetos e chamados de cada um." />
+      <ClientesLista inicial={clientes} />
+    </>
   );
 }

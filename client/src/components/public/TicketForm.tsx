@@ -4,16 +4,16 @@ import { useState, type FormEvent } from 'react';
 import { Check, Loader2, Send } from 'lucide-react';
 import { enviarTicket } from '@/lib/tickets';
 import type { NovoTicket } from '@/lib/types';
+import type { SiteContent } from '@/lib/content-schema';
 
 type Status = 'idle' | 'sending' | 'ok' | 'error';
-
-const ORCAMENTOS = ['Ainda não sei', 'Até R$ 2.000', 'R$ 2.000 – R$ 5.000', 'R$ 5.000 – R$ 15.000', 'Acima de R$ 15.000'];
 
 const field =
   'w-full rounded-xl border bg-background px-4 py-3 text-foreground placeholder:text-subtle outline-none transition focus:border-primary/70 focus:ring-4 focus:ring-primary/15';
 const label = 'mb-1.5 block text-sm text-muted-foreground';
 
-export default function TicketForm() {
+/** Textos do botão, sucesso e faixas de investimento vêm do admin (Conteúdo do site → Contato). */
+export default function TicketForm({ config }: { config: SiteContent['formulario_contato'] }) {
   const [status, setStatus] = useState<Status>('idle');
   const [erro, setErro] = useState('');
 
@@ -57,8 +57,8 @@ export default function TicketForm() {
         <span className="mb-5 grid size-14 place-items-center rounded-full bg-primary text-primary-foreground">
           <Check className="size-7" />
         </span>
-        <h3 className="text-xl font-semibold">Recebi sua ideia!</h3>
-        <p className="mt-2 max-w-sm text-muted-foreground">Vou analisar os detalhes e te chamo em até 24 horas pelo contato informado.</p>
+        <h3 className="text-xl font-semibold">{config.sucesso_titulo}</h3>
+        <p className="mt-2 max-w-sm text-muted-foreground">{config.sucesso_texto}</p>
         <button type="button" onClick={() => setStatus('idle')} className="mt-6 text-sm text-subtle underline-offset-4 hover:text-foreground hover:underline">
           Enviar outra demanda
         </button>
@@ -67,7 +67,7 @@ export default function TicketForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl border bg-card p-6 sm:p-8" noValidate={false}>
+    <form onSubmit={onSubmit} className="rounded-2xl border bg-card p-6 sm:p-10" noValidate={false}>
       {/* Honeypot: invisível para pessoas, atrativo para bots */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label>
@@ -97,13 +97,15 @@ export default function TicketForm() {
           <textarea id="ideia_inicial" name="ideia_inicial" required rows={4} minLength={10} className={`${field} resize-y`}
             placeholder="Conte o problema que quer resolver, quem vai usar e se já existe algo pronto." />
         </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="orcamento_previo_cliente" className={label}>Faixa de investimento</label>
-          <select id="orcamento_previo_cliente" name="orcamento_previo_cliente" defaultValue="" className={`${field} appearance-none`}>
-            <option value="" disabled>Selecione (opcional)</option>
-            {ORCAMENTOS.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-        </div>
+        {config.faixas_investimento.length > 0 && (
+          <div className="sm:col-span-2">
+            <label htmlFor="orcamento_previo_cliente" className={label}>Faixa de investimento</label>
+            <select id="orcamento_previo_cliente" name="orcamento_previo_cliente" defaultValue="" className={`${field} appearance-none`}>
+              <option value="" disabled>Selecione (opcional)</option>
+              {config.faixas_investimento.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+        )}
       </div>
 
       {status === 'error' && (
@@ -117,9 +119,9 @@ export default function TicketForm() {
         disabled={status === 'sending'}
         className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-medium text-primary-foreground transition hover:bg-primary/85 disabled:cursor-wait disabled:opacity-70"
       >
-        {status === 'sending' ? <><Loader2 className="size-4 animate-spin" /> Enviando…</> : <><Send className="size-4" /> Enviar minha ideia</>}
+        {status === 'sending' ? <><Loader2 className="size-4 animate-spin" /> Enviando…</> : <><Send className="size-4" /> {config.texto_botao}</>}
       </button>
-      <p className="mt-3 text-center text-xs text-subtle">Sem compromisso. Resposta em até 24 horas.</p>
+      {config.nota_rodape && <p className="mt-3 text-center text-xs text-subtle">{config.nota_rodape}</p>}
     </form>
   );
 }

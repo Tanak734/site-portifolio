@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import Icon from './Icon';
 import { getContent, opensNewTab } from '@/lib/content';
 
@@ -9,7 +10,12 @@ export default async function Footer() {
   return (
     <footer className="border-t px-4 py-10 sm:px-6">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 sm:flex-row">
-        <p className="text-sm text-subtle">© {year} {perfil.marca}</p>
+        <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-subtle">
+          © {year} {perfil.marca}
+          {!process.env.NEXT_PUBLIC_BASE_PATH && (
+            <Link href="/cliente" className="transition hover:text-foreground">Área do cliente</Link>
+          )}
+        </p>
         <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
           {links_sociais.map((l) => (
             <li key={l.nome}>

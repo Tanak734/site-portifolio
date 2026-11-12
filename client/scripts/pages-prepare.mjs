@@ -2,7 +2,7 @@
 // apaga o admin e altera arquivos do src (o checkout do CI é descartável).
 //
 // Por quê:
-//  - O admin usa Server Actions e cookies → não existe em site estático.
+//  - O admin (e o portal do cliente /status) usam Server Actions, cookies e dados por token → não existem em site estático.
 //  - Cache Components ('use cache', cacheLife, cacheTag) liga o PPR, que o Next não
 //    aceita com output: 'export'. No Pages tudo é gerado uma vez no build, então o
 //    cache não faz falta: tiramos as diretivas e as chamadas.
@@ -13,7 +13,7 @@ if (!process.env.CI && !process.argv.includes('--force')) {
   process.exit(1);
 }
 
-for (const dir of ['src/app/admin', 'src/components/admin']) {
+for (const dir of ['src/app/admin', 'src/components/admin', 'src/app/status', 'src/app/cliente', 'src/components/portal', 'src/lib/portal-api.ts', 'src/lib/area-cliente-api.ts', 'src/lib/admin-api.ts']) {
   rmSync(dir, { recursive: true, force: true });
   console.log(`removido ${dir}`);
 }

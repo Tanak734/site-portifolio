@@ -1,7 +1,7 @@
 // Data Access Layer de autenticação do admin — só roda no servidor.
 //
 // Três formas de entrar:
-//  1. API (produção):   POST /api/auth/login no Fastify grava o cookie HTTP-only com o JWT.
+//  1. API (produção):   POST /api/auth/login no NestJS grava o cookie HTTP-only com o JWT.
 //                       Aqui validamos repassando os cookies para GET /api/auth/me.
 //  2. Mock (dev):       NEXT_PUBLIC_USE_MOCKS="true" → login local com ADMIN_DEV_EMAIL/ADMIN_DEV_PASSWORD.
 //  3. Acesso direto (dev): ADMIN_DEV_BYPASS="true" OU botão "Entrar sem login" na tela de login.

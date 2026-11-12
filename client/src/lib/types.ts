@@ -12,7 +12,7 @@ export interface ProjetoPublico {
   live_url: string | null;
   github_url: string | null;
   figma_url: string | null;
-  /** NOVO (não existe em schema.sql ainda): vídeo de demonstração exibido no modal. MP4 ou link do YouTube. */
+  /** Vídeo de demonstração exibido no modal. MP4 ou link do YouTube. */
   video_url: string | null;
   is_confidencial: boolean;
   is_destaque: boolean;

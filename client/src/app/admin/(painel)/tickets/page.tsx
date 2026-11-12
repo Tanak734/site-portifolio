@@ -1,15 +1,13 @@
-import EmConstrucao from '@/components/admin/EmConstrucao';
+import PageHeader from '@/components/admin/PageHeader';
+import IdeiasBoard from '@/components/admin/ideias/IdeiasBoard';
+import { getTickets } from '@/lib/admin-api';
 
-export default function TicketsPage() {
+export default async function TicketsPage() {
+  const tickets = await getTickets();
   return (
-    <EmConstrucao
-      title="Tickets"
-      description="Funil de pré-venda: triagem, conversa e MVP."
-      itens={[
-        'Kanban por status (Novo → Em conversa → MVP → Convertido / Desistência)',
-        'Notas da conversa, resumo do MVP e link do protótipo',
-        'Botão "Converter em Cliente + Projeto" (transação atômica)',
-      ]}
-    />
+    <>
+      <PageHeader title="Ideias de projeto" description="Funil de pré-venda. Arraste os cartões entre as etapas ou abra uma ideia para registrar a conversa e o MVP." />
+      <IdeiasBoard inicial={tickets} />
+    </>
   );
 }

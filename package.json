@@ -1,11 +1,10 @@
 {
-  "name": "site-portifolio",
+  "name": "site-pessoal-hub",
   "private": true,
   "version": "1.0.0",
-  "description": "Plataforma de Portfólio, CRM, Engenharia de Requisitos e Avaliação Arquitetural (Next.js + Fastify + Prisma + PostgreSQL)",
+  "description": "Plataforma Pessoal Integrada de Portfólio, CMS, Ideias, Projetos, Calculadoras e Chamados (Next.js + NestJS Modular + Prisma + PostgreSQL)",
   "packageManager": "pnpm@12.15.0",
   "scripts": {
-    "dev": "pnpm --parallel -r dev",
     "dev:server": "pnpm --filter @portfolio/server dev",
     "dev:client": "pnpm --filter @portfolio/client dev",
     "build": "pnpm -r build",

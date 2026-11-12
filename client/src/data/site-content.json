@@ -15,7 +15,8 @@
     "texto_disponibilidade": "Disponível para novos projetos neste mês",
     "texto_indisponibilidade": "Agenda cheia no momento · Entrar na fila de espera",
     "link_fila_espera": "#contato",
-    "avatar_url": "/images/avatar.jpg",
+    "avatar_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOPdaQ10r6ImNZv6TuJZLqEZ2bB5Lq3AWX_jchW-4eyg&s=10",
+    "exibir_foto": true,
     "localizacao": "Brasil",
     "cta_principal": {
       "texto": "Solicitar Orçamento / Iniciar Projeto",
@@ -54,23 +55,187 @@
         "curso": "Seu Curso (ex.: Engenharia de Software)",
         "instituicao": "Nome da Instituição"
       }
+    ],
+    "numeros": [
+      {
+        "valor": "2+",
+        "rotulo": "anos programando"
+      },
+      {
+        "valor": "10+",
+        "rotulo": "projetos entregues"
+      },
+      {
+        "valor": "24h",
+        "rotulo": "para responder"
+      }
     ]
   },
   "objetivos_profissionais": {
-    "titulo": "Meus Objetivos & Foco Atual",
-    "subtitulo": "Minha visão de carreira e as frentes técnicas em que estou aprofundando minha engenharia.",
     "missao": "Construir software sem deixar de lado a entrega, a qualidade e o caráter.",
-    "metas_atuais": [
-      "Aprofundamento em Arquitetura em Camadas, Modularidade e Sistemas Distribuídos",
-      "Especialização em ecossistemas de alta produtividade e performance (TypeScript/Fastify e Go)",
-      "Aplicação de Engenharia de Requisitos estruturada no ciclo de vida do cliente"
-    ],
     "interesses_tecnicos": [
       "Modelagem Relacional Avançada (PostgreSQL)",
       "Processamento Assíncrono e Mensageria",
       "DevOps, Docker e Deploy Automatizado"
     ]
   },
+  "servicos": [
+    {
+      "icone": "workflow",
+      "titulo": "Sistemas web sob medida",
+      "descricao": "Painéis, áreas do cliente e ferramentas internas desenhadas em torno do seu processo — não o contrário.",
+      "entregas": [
+        "Levantamento de requisitos",
+        "Painel administrativo",
+        "Deploy e documentação"
+      ],
+      "tecnologias": [
+        "TypeScript",
+        "React",
+        "Next.js",
+        "PostgreSQL",
+        "spring",
+        "Git",
+        "Digital Ocean",
+        "Google Cloud",
+        "Modelagem Relacional (SQL)",
+        "Github",
+        "Linux"
+      ]
+    },
+    {
+      "icone": "server",
+      "titulo": "APIs & integrações",
+      "descricao": "APIs REST seguras e integrações com pagamentos, ERPs, WhatsApp e outros serviços externos.",
+      "entregas": [
+        "API documentada",
+        "Webhooks e filas",
+        "Autenticação e permissões"
+      ],
+      "tecnologias": [
+        "Go",
+        "TypeScript",
+        "PostgreSQL",
+        "Redis"
+      ]
+    },
+    {
+      "icone": "layout",
+      "titulo": "Sites e landing pages",
+      "descricao": "Páginas rápidas, otimizadas para SEO e pensadas para transformar visitantes em clientes.",
+      "entregas": [
+        "Design responsivo",
+        "SEO técnico",
+        "Formulário de contato"
+      ],
+      "tecnologias": [
+        "Next.js",
+        "React",
+        "Tailwind CSS"
+      ]
+    },
+    {
+      "icone": "rocket",
+      "titulo": "MVP para validar sua ideia",
+      "descricao": "A primeira versão do seu produto no ar em poucas semanas, com o essencial para testar com usuários reais.",
+      "entregas": [
+        "Escopo enxuto",
+        "Entregas semanais",
+        "Base pronta para crescer"
+      ],
+      "tecnologias": [
+        "TypeScript",
+        "Next.js",
+        "PostgreSQL",
+        "docker"
+      ]
+    }
+  ],
+  "processo": [
+    {
+      "titulo": "Conversa inicial",
+      "descricao": "Entendo o problema, quem vai usar e o que já existe hoje. Sem custo e sem compromisso.",
+      "duracao": "30 min"
+    },
+    {
+      "titulo": "Proposta",
+      "descricao": "Escopo, prazo e investimento por escrito, divididos em etapas claras.",
+      "duracao": "até 3 dias"
+    },
+    {
+      "titulo": "Desenvolvimento",
+      "descricao": "Entregas frequentes para você acompanhar, testar e ajustar desde o começo.",
+      "duracao": "por etapas"
+    },
+    {
+      "titulo": "Entrega & suporte",
+      "descricao": "Publicação, documentação e um período de suporte para pequenos ajustes.",
+      "duracao": "30 dias de suporte"
+    }
+  ],
+  "faq": [
+    {
+      "pergunta": "Quanto custa um projeto?",
+      "resposta": "Depende do escopo. Depois da conversa inicial envio uma proposta com valor fechado e dividido em etapas, sem surpresas no meio do caminho."
+    },
+    {
+      "pergunta": "Quanto tempo leva?",
+      "resposta": "Uma landing page costuma levar de 1 a 2 semanas. Sistemas e MVPs, de 4 a 10 semanas, conforme a complexidade."
+    },
+    {
+      "pergunta": "Preciso entender de tecnologia?",
+      "resposta": "Não. Você explica o problema do seu negócio e eu cuido das decisões técnicas, sempre explicando as opções em linguagem simples."
+    },
+    {
+      "pergunta": "Você dá manutenção depois da entrega?",
+      "resposta": "Sim. Todo projeto tem um período de suporte incluso e, depois dele, você pode contratar manutenção mensal ou ajustes pontuais."
+    }
+  ],
+  "formulario_contato": {
+    "faixas_investimento": [
+      "Ainda não sei",
+      "Até R$ 2.000",
+      "R$ 2.000 – R$ 5.000",
+      "R$ 5.000 – R$ 15.000",
+      "Acima de R$ 15.000"
+    ],
+    "texto_botao": "Enviar minha ideia",
+    "nota_rodape": "Sem compromisso. Resposta em até 48 horas.",
+    "sucesso_titulo": "Recebi sua ideia!",
+    "sucesso_texto": "Vou analisar os detalhes e te chamo em até 24 horas pelo contato informado."
+  },
+  "secoes": [
+    {
+      "id": "projetos",
+      "visivel": true,
+      "no_menu": true
+    },
+    {
+      "id": "servicos",
+      "visivel": true,
+      "no_menu": true
+    },
+    {
+      "id": "processo",
+      "visivel": true,
+      "no_menu": false
+    },
+    {
+      "id": "depoimentos",
+      "visivel": true,
+      "no_menu": true
+    },
+    {
+      "id": "sobre",
+      "visivel": true,
+      "no_menu": true
+    },
+    {
+      "id": "faq",
+      "visivel": true,
+      "no_menu": true
+    }
+  ],
   "links_sociais": [
     {
       "nome": "GitHub",
@@ -119,7 +284,7 @@
           "marquee": true
         },
         {
-          "nome": "rub",
+          "nome": "ruby",
           "slug_icone": "ruby",
           "marquee": true
         },
@@ -251,8 +416,20 @@
       "descricao": "As ferramentas que uso no dia a dia para entregar cada projeto."
     },
     "projetos": {
-      "titulo": "Estudos de Caso & Portfólio",
-      "descricao": "Sistemas desenvolvidos, decisões arquiteturais tomadas e resultados entregues."
+      "titulo": "Projetos feitos",
+      "descricao": "Sistemas desenvolvidos com descrições de decisões arquiteturais tomadas e resultados entregues aos clientes de forma precisa e organizada."
+    },
+    "servicos": {
+      "titulo": "Como posso ajudar",
+      "descricao": "Do site institucional ao sistema completo: escolha o ponto de partida."
+    },
+    "processo": {
+      "titulo": "Como trabalho",
+      "descricao": "Um processo simples e transparente, do primeiro contato à entrega."
+    },
+    "faq": {
+      "titulo": "Perguntas frequentes",
+      "descricao": "O que costumam me perguntar antes de começar um projeto."
     },
     "depoimentos": {
       "titulo": "Depoimentos & Validações",

@@ -1,16 +1,18 @@
-# 💻 Documentação Oficial do Frontend (`@portfolio/client`)
+# 💻 Documentação Oficial do Frontend (`site-pessoal-hub` · `./client`)
 
-> **Stack Definida:** Next.js (App Router), React 19, TypeScript, Tailwind CSS v4, **shadcn/ui** e Lucide Icons.
-> **Propósito deste Documento:** Servir como contexto completo e guia passo a passo para o desenvolvimento gradual do Frontend, cobrindo a Landing Page pública (Server Components para SEO máximo), o Portal do Cliente (`/status/[token]`) e o Painel Administrativo estilo SaaS/ERP (`/admin/*`).
+> **Stack Definida (100% Preservada):** Next.js (App Router), React 19, TypeScript, Tailwind CSS v4, **shadcn/ui**, **React Bits** e Lucide Icons.
+> **Integração Backend:** Consome a API REST do Monólito Modular em **TypeScript + NestJS 12 + Prisma** (`./app`, porta `3333`).
+> **Propósito deste Documento:** Documentar toda a arquitetura da interface em React já construída e sua evolução para operar os **4 Pilares do Ecossistema**: (1) Configuração Visual & Feature Flags do Site, (2) Funil de Ideias de Projeto, (3) CRM de Clientes & Hub de Projetos com Calculadoras, e (4) Sistema de Chamados de Manutenção & Sustentação com links por projeto.
 
 ---
 
-## 1. Por que Next.js + React + shadcn/ui?
+## 1. Visão Arquitetural: Next.js no Front + NestJS Modular no Back
 
-Como o projeto evoluiu de um simples portfólio estático para uma **Plataforma Completa de Gestão de Projetos, Engenharia de Requisitos, Avaliação Arquitetural (BI) e Calculadora de Custos**, o **Next.js (App Router)** oferece o melhor dos dois mundos usando **uma única sintaxe (`.tsx`)**:
+Toda a base visual, animações e componentes interativos construídos em React dentro de `./client` são **integralmente mantidos**, compartilhando schemas de validação **Zod** e tipagem TypeScript de ponta a ponta com o servidor NestJS:
 
-1. **Na Página Pública (`/`):** Utiliza **React Server Components (RSC)** para renderizar a página no servidor lendo o `site-content.json` com zero JavaScript desnecessário, garantindo **SEO nota 100** e carregamento instantâneo.
-2. **No Portal do Cliente (`/status/[token]`) e Painel Admin (`/admin/*`):** Utiliza **Client Components** ricos com navegação SPA fluida, gerenciamento de estado reativo e componentes prontos de alta qualidade do **shadcn/ui** (Tabs, Dialogs, Tables, Badges, Progress, Forms) para construir a Calculadora Júnior, a Matriz de BI e os Checklists em 2 níveis com máxima velocidade.
+1. **Na Página Pública (`/`):** Renderiza a vitrine comercial com **React Server Components (RSC)** e ilhas interativas (`"use client"`) com **React Bits** (`LogoLoop`, `StarBorder`, `RotatingText`, `BlurText`, `Magnet`), respeitando em tempo real os interruptores de visibilidade (**Feature Flags**) definidos pelo Admin em `/admin/config`.
+2. **No Portal do Cliente & Links de Chamados (`/status/[token]`):** Permite ao cliente acompanhar o progresso de 0% a 100%, conferir a transparência de custos operacionais com links de fonte e **abrir/acompanhar Chamados de Manutenção, Alteração ou Melhoria** diretamente vinculados ao projeto dele.
+3. **No Painel Administrativo (`/admin/*`):** Funciona como uma **Torre de Controle (Portal de Operações)** protegida por login forte (Senha + 2FA TOTP ou **Passkeys / WebAuthn por Dispositivo Físico**), reunindo os 4 sistemas internos em uma interface coesa em React + `shadcn/ui`.
 
 ---
 
@@ -21,303 +23,193 @@ client/
 ├── package.json
 ├── next.config.ts
 ├── tsconfig.json
-├── components.json                   # Configuração do shadcn/ui
-├── .env.local                        # NEXT_PUBLIC_API_URL="http://localhost:3333"
+├── components.json                        # Configuração do shadcn/ui
+├── .env.local                             # NEXT_PUBLIC_API_URL="http://localhost:3333"
 └── src/
     ├── data/
-    │   └── site-content.json         # Fonte única da verdade para textos, bio, objetivos e skills
+    │   ├── site-content.json              # Fonte única da verdade (Textos, Feature Flags e Categorias)
+    │   ├── mock.ts                        # Mocks públicos para desenvolvimento offline
+    │   └── mock-admin.ts                  # Mocks administrativos para desenvolvimento offline
     ├── lib/
-    │   ├── api.ts                    # Cliente HTTP configurado com credentials: 'include'
-    │   └── utils.ts                  # Helper cn() do Tailwind / shadcn
+    │   ├── api.ts                         # Cliente HTTP (credentials: 'include') conectado ao NestJS
+    │   ├── auth.ts                        # Verificação de sessão do Admin + suporte a Passkeys
+    │   ├── content.ts                     # Leitura/cache do site-content.json
+    │   ├── content-schema.ts              # Validação Zod do site-content.json (seções, serviços, processo, FAQ, categorias)
+    │   ├── content-utils.ts               # Helpers puros (secoesOrdenadas, links de e-mail/currículo)
+    │   ├── tech-icons.ts                  # Catálogo de ícones de tecnologias
+    │   ├── types.ts                       # Tipos públicos e do Portal do Cliente
+    │   └── admin-types.ts                 # Tipos do Admin (Ideias, Clientes, Projetos, Calculadoras, Chamados)
     ├── components/
-    │   ├── ui/                       # Componentes base do shadcn/ui (button, card, tabs, dialog, etc.)
-    │   ├── public/                   # Componentes da Landing Page (/)
-    │   │   ├── Navbar.tsx
-    │   │   ├── HeroSection.tsx
-    │   │   ├── TextRotator.tsx       # ("use client") Efeito de palavras sequenciais
-    │   │   ├── SkillMarquee.tsx      # Fita infinita de ícones (skillicons.dev)
-    │   │   ├── SkillsCatalog.tsx     # Habilidades e conceitos separados por categoria
-    │   │   ├── ObjectivesSection.tsx # Seção de objetivos profissionais e foco atual
-    │   │   ├── ProjectCard.tsx       # Card com badges de stack, link direto e suporte a NDA
-    │   │   ├── Testimonials.tsx
-    │   │   └── TicketForm.tsx        # ("use client") Formulário de orçamento com Honeypot
-    │   ├── portal/                   # Componentes do Portal do Cliente (/status/[token])
-    │   │   ├── ProgressHeader.tsx
-    │   │   ├── ClientTaskList.tsx
-    │   │   ├── CostTransparencyTable.tsx
-    │   │   └── ClientCommentBox.tsx  # ("use client") Chat de comentários do cliente
-    │   └── admin/                    # Componentes do Painel SaaS (/admin/*)
-    │       ├── AdminSidebar.tsx
-    │       ├── TicketKanban.tsx      # Triagem, anotações de MVP e botão de conversão
-    │       ├── ProjectHub.tsx        # Hub com 6 abas (Geral, Requisitos, BI/ADR, Calculadora, Tarefas, Custos)
-    │       ├── JuniorCalculator.tsx  # Calculadora interativa em tempo real
-    │       ├── TaskLevelManager.tsx  # Gestão de Tarefas (Nível 1) e Checklists (Nível 2)
-    │       └── SiteConfigEditor.tsx  # Editor visual do site-content.json
+    │   ├── ui/                            # Componentes base do shadcn/ui (button, card, dialog, badge, progress...)
+    │   ├── reactbits/                     # Animações React Bits (LogoLoop, StarBorder, RotatingText, BlurText, Magnet)
+    │   ├── public/                        # Componentes da Landing Page (/) — 100% Preservados
+    │   │   ├── Navbar.tsx                 # Marca + NavTicker em loop + redes + CTA
+    │   │   ├── HeroSection.tsx            # Headline + RotatingText + StarBorder CTA
+    │   │   ├── SkillMarquee.tsx           # Fita infinita de ícones de stacks
+    │   │   ├── ProjectsSection.tsx        # Grid 3 colunas + ProjectCard + ProjectDialog (vídeo/NDA)
+    │   │   ├── Testimonials.tsx           # Carrossel com avatares DiceBear Notionists
+    │   │   ├── ServicesSection.tsx        # Cartões de serviço (ícone, entregas ✓ e tecnologias do catálogo)
+    │   │   ├── ServiceIcon.tsx            # Mapa de ícones lucide dos serviços (usado também no admin)
+    │   │   ├── ProcessSection.tsx         # "Como trabalho": etapas numeradas ligadas por linha
+    │   │   ├── CareerSection.tsx          # Sobre: perfil (foto opcional), missão, números, experiência, formação e "Estudando agora"
+    │   │   ├── FaqSection.tsx             # Acordeão <details> + JSON-LD FAQPage (SEO)
+    │   │   ├── ContactSection.tsx         # Título centralizado + TicketForm (Envio de Ideia de Projeto com Honeypot)
+    │   │   ├── Footer.tsx
+    │   │   └── FloatingContact.tsx
+    │   ├── portal/                        # O que o CLIENTE vê (nada de horas, valor-hora, seus custos ou notas internas)
+    │   │   ├── PortalCliente.tsx          # Portal de 1 projeto (/status/[token]): abas Andamento · Chamados · Financeiro · Recados (aba pelo #hash)
+    │   │   ├── EntrarForm.tsx             # /cliente: pede o link de acesso por e-mail (resposta sempre igual)
+    │   │   └── AreaTopo.tsx
+    │   └── admin/                         # Torre de Controle (/admin/*) — prévia funcional com dados de exemplo
+    │       ├── AdminTopbar.tsx            # Barra superior: lançador de apps (grade), atalhos, selo "Prévia" e menu da conta
+    │       ├── apps.ts                    # Registro único dos aplicativos (barra, lançador e dashboard)
+    │       ├── ui.tsx · Abas.tsx · Modal.tsx  # Peças base: Painel, Kpi, Barra, campos; abas sem rolagem lateral; modal/gaveta lateral
+    │       ├── StatusBadge.tsx            # Rótulo + cor de todos os enums (ideia, projeto, chamado, pagamento, ADR) + prioridade
+    │       ├── LoginForm.tsx · PageHeader.tsx · SegurancaPainel.tsx
+    │       ├── content-editor/            # PILAR 1: Editor do site (navegação lateral espelhando a página)
+    │       │   ├── ContentEditor.tsx · EditorNav.tsx · tabs.tsx · fields.tsx · IconPicker.tsx
+    │       ├── ideias/IdeiasBoard.tsx     # PILAR 2: Kanban arrastável, ficha lateral, nova ideia e conversão em cliente + projeto
+    │       ├── clientes/ClientesLista.tsx # PILAR 3A: Lista com busca/filtros e cadastro direto
+    │       ├── projetos/                  # PILAR 3B: Lista + Hub do projeto
+    │       │   ├── ProjetosLista.tsx · ProjetoHub.tsx · calculos.ts (regras do §6 do backend)
+    │       │   └── abas/                  # Geral, Requisitos (+dúvidas), Arquitetura (matriz BI + ADRs), Financeiro (Calculadora Jr, custos, pagamentos), Tarefas (2 níveis), Chamados, Vitrine (prévia com o ProjectCard real)
+    │       └── chamados/                  # PILAR 4: Central de chamados + conversa com notas internas e conversão em tarefa
+    │           ├── ChamadosCentral.tsx
+    │           └── ChamadoDetalhe.tsx
     └── app/
-        ├── globals.css               # @import "tailwindcss" + @keyframes marquee
-        ├── layout.tsx                # Root Layout (Fontes, Metadata SEO)
-        ├── page.tsx                  # 1. LANDING PAGE PÚBLICA (/)
+        ├── globals.css
+        ├── layout.tsx
+        ├── page.tsx                       # 1. LANDING PAGE PÚBLICA (/) — Renderiza apenas seções ativas
+        ├── cliente/
+        │   ├── page.tsx                   # 2a. ÁREA DO CLIENTE — entrada por e-mail (link mágico, sem senha)
+        │   └── [token]/page.tsx           # 2b. Todos os projetos do cliente, com "Acompanhar" e "Abrir chamado"
         ├── status/
         │   └── [token]/
-        │       └── page.tsx          # 2. PORTAL DO CLIENTE (/status/:token)
-        └── admin/                    # 3. PAINEL ADMINISTRATIVO PRIVADO
+        │       └── page.tsx               # 2c. PORTAL DE UM PROJETO & CHAMADOS (/status/:token)
+        └── admin/                         # 3. TORRE DE CONTROLE ADMINISTRATIVA (/admin/*)
             ├── login/
-            │   └── page.tsx          # Tela de login (/admin/login)
-            └── (painel)/             # Route Group protegido por autenticação
-                ├── layout.tsx        # Layout com Sidebar do Admin e verificação de sessão
-                ├── page.tsx          # Dashboard Geral (/admin)
+            │   └── page.tsx               # Login seguro (/admin/login)
+            └── (painel)/
+                ├── layout.tsx             # Layout autenticado com AdminTopbar (barra superior + lançador de apps)
+                ├── page.tsx               # Portal Central / Dashboard de Módulos (/admin)
+                ├── config/
+                │   └── page.tsx           # Pilar 1: Conteúdo do Site, Feature Flags & Categorias (/admin/config)
                 ├── tickets/
-                │   └── page.tsx      # Funil de Tickets & MVP (/admin/tickets)
+                │   └── page.tsx           # Pilar 2: Ideias de Projeto (/admin/tickets)
                 ├── clientes/
-                │   └── page.tsx      # CRM de Clientes (/admin/clientes)
+                │   └── page.tsx           # Pilar 3A: CRM de Clientes com criação livre (/admin/clientes)
                 ├── projetos/
-                │   ├── page.tsx      # Lista de Projetos (/admin/projetos)
+                │   ├── page.tsx           # Pilar 3B: Lista e criação livre de Projetos (/admin/projetos)
                 │   └── [id]/
-                │       └── page.tsx  # Hub Central do Projeto (/admin/projetos/:id)
-                └── config/
-                    └── page.tsx      # Editor do site-content.json (/admin/config)
+                │       └── page.tsx       # Hub Central do Projeto + Calculadoras + Chamados (/admin/projetos/:id)
+                ├── chamados/
+                │   └── page.tsx           # Pilar 4: Visão Global de Chamados de Manutenção (/admin/chamados)
+                ├── clientes/[id]/page.tsx  # Ficha do cliente: dados, notas, projetos, chamados e ideias de origem
+                ├── chamados/[id]/page.tsx  # Conversa do chamado + status, orçamento extra e conversão em tarefa
+                └── seguranca/
+                    └── page.tsx           # Gestão de Dispositivos Confiáveis (Passkeys) e 2FA (/admin/seguranca)
 ```
 
 ---
 
-## 3. Fonte de Verdade dos Textos e Skills (`src/data/site-content.json`)
+## 3. Os 4 Pilares de Operação no Painel Admin (`/admin`)
 
-Todo o conteúdo institucional, frases rotativas, objetivos de carreira e catálogo de habilidades ficam neste arquivo (sem duplicar no banco de dados):
+### 3.0. Navegação: barra superior + lançador de aplicativos
+O painel não tem mais barra lateral. A **barra superior** (`AdminTopbar`) traz a marca, o **lançador** (ícone de grade, estilo "apps") com todos os aplicativos, atalhos diretos para os principais e o menu da conta (Segurança, Ver site, Sair). A lista de aplicativos vive em `components/admin/apps.ts` e alimenta barra, lançador e dashboard ao mesmo tempo.
+
+**Prévia sem backend:** com `NEXT_PUBLIC_USE_MOCKS="true"` todas as telas usam `src/data/mock-admin.ts` (via `lib/admin-api.ts`, que já aponta para os endpoints reais quando o mock é desligado). As interações (arrastar, marcar, responder, converter) funcionam só no estado do navegador, e a barra mostra o selo **“Prévia · dados de exemplo”**. O portal do cliente de exemplo fica em `/status/demo`.
+
+### 3.0.1. O que é seu × o que é do cliente
+- **Área do cliente** (`/cliente/[token]`, link no rodapé do site): um link por cliente com todos os projetos dele. Gerado e revogado na ficha do cliente (painel “Área do cliente”, com “Ver como o cliente”).
+- **Portal do projeto** (`/status/[token]`): um link por projeto, que pode ser repassado à equipe do cliente sem expor os outros projetos.
+- No Hub, tudo que aparece para o cliente leva o selo **“Cliente vê”** (etapas visíveis, parcelas, custos do cliente, recados, link do portal); o resto é marcado como **“Só você”** ou fica sem selo.
+- Chamados: com “Aceita chamados” desligado, o portal mostra o histórico e um botão de contato (“o período de suporte terminou”).
+
+### 3.1. O Dashboard como "Portal de Operações" (`src/app/admin/(painel)/page.tsx`)
+Ao entrar em `/admin`, o administrador visualiza:
+1. **Lançador de aplicativos:** um cartão por app (Ideias, Clientes, Projetos, Chamados, Conteúdo do site, Portal do cliente, Segurança) com uma métrica curta e contador de pendências.
+2. **Precisa de atenção:** chamados críticos/altos, parcelas vencendo em até 7 dias, ideias novas, chamados sem resposta e dúvidas pendentes — cada item leva direto à tela certa (ex.: `?aba=financeiro` no Hub).
+3. **Projetos ativos** (progresso, prazo, horas) e **A receber** (próximos 30 dias e total pendente).
+4. Atalhos **+ Ideia**, **+ Cliente** e **+ Projeto** (abrem os formulários via `?nova=1` / `?novo=1`).
+
+---
+
+### 3.2. Pilar 1: Configuração do Site, Feature Flags & Categorias (`/admin/config`)
+Baseado no `ContentEditor.tsx` já implementado, com suporte a **Feature Flags Visuais** no `site-content.json`:
 
 ```json
-{
-  "perfil": {
-    "nome": "Seu Nome Completo",
-    "cargo": "Desenvolvedor Full Stack & Engenheiro de Software",
-    "headline": "Transformo sua ideia em",
-    "palavras_rotativas": [
-      "sistemas escaláveis",
-      "sites de alta conversão",
-      "MVPs rápidos e funcionais",
-      "soluções web sob medida"
-    ],
-    "subheadline": "Construo aplicações web modernas aliando rigor técnico de engenharia de software a resultados práticos de negócio.",
-    "disponivel_para_novos_projetos": true,
-    "texto_disponibilidade": "Disponível para novos projetos neste mês",
-    "avatar_url": "/images/avatar.jpg",
-    "localizacao": "Brasil",
-    "cta_principal": {
-      "texto": "Solicitar Orçamento / Iniciar Projeto",
-      "url": "#contato"
-    }
-  },
-
-  "objetivos_profissionais": {
-    "titulo": "Meus Objetivos & Foco Atual",
-    "subtitulo": "Minha visão de carreira e as frentes técnicas em que estou aprofundando minha engenharia.",
-    "missao": "Construir software sustentável de alta performance aplicando padrões de projeto, arquitetura limpa e entrega contínua.",
-    "metas_atuais": [
-      "Aprofundamento em Arquitetura em Camadas, Modularidade e Sistemas Distribuídos",
-      "Especialização em ecossistemas de alta produtividade e performance (TypeScript/Fastify e Go)",
-      "Aplicação de Engenharia de Requisitos estruturada no ciclo de vida do cliente"
-    ],
-    "interesses_tecnicos": [
-      "Modelagem Relacional Avançada (PostgreSQL)",
-      "Processamento Assíncrono e Mensageria",
-      "DevOps, Docker e Deploy Automatizado"
-    ]
-  },
-
-  "links_sociais": [
-    { "nome": "GitHub", "url": "https://github.com/seu-user", "icone": "github" },
-    { "nome": "LinkedIn", "url": "https://linkedin.com/in/seu-user", "icone": "linkedin" },
-    { "nome": "WhatsApp", "url": "https://wa.me/5500000000000", "icone": "message-circle" },
-    { "nome": "Currículo PDF", "url": "/docs/curriculo.pdf", "icone": "file-text" }
-  ],
-
-  "categorias_skills": [
-    {
-      "categoria": "Backend & APIs",
-      "descricao": "Serviços rápidos, seguros e escaláveis.",
-      "items": [
-        { "nome": "Fastify", "slug_icone": "fastify", "marquee": true },
-        { "nome": "Node.js", "slug_icone": "nodejs", "marquee": true },
-        { "nome": "FastAPI", "slug_icone": "fastapi", "marquee": true },
-        { "nome": "TypeScript", "slug_icone": "ts", "marquee": true }
-      ]
-    },
-    {
-      "categoria": "Bancos de Dados & Persistência",
-      "descricao": "Modelagem íntegra e consultas otimizadas.",
-      "items": [
-        { "nome": "PostgreSQL", "slug_icone": "postgres", "marquee": true },
-        { "nome": "SQLite", "slug_icone": "sqlite", "marquee": false },
-        { "nome": "Prisma ORM", "slug_icone": "prisma", "marquee": true }
-      ]
-    },
-    {
-      "categoria": "Frontend & Interfaces",
-      "descricao": "Interfaces modernas com foco em performance e SEO.",
-      "items": [
-        { "nome": "Next.js", "slug_icone": "nextjs", "marquee": true },
-        { "nome": "React", "slug_icone": "react", "marquee": true },
-        { "nome": "Tailwind CSS", "slug_icone": "tailwind", "marquee": true }
-      ]
-    },
-    {
-      "categoria": "Engenharia & Conceitos",
-      "descricao": "Fundamentos que aplico na estruturação das soluções.",
-      "items": [
-        { "nome": "Arquitetura em Camadas", "slug_icone": null, "marquee": false },
-        { "nome": "Engenharia de Requisitos", "slug_icone": null, "marquee": false },
-        { "nome": "APIs RESTful & Webhooks", "slug_icone": null, "marquee": false },
-        { "nome": "Modelagem Relacional (SQL)", "slug_icone": null, "marquee": false }
-      ]
-    }
-  ],
-
-  "textos_secoes": {
-    "skills": {
-      "titulo": "Competências & Tecnologias",
-      "descricao": "Ferramentas e conceitos que domino e como cada um deles gera valor real para o seu projeto."
-    },
-    "projetos": {
-      "titulo": "Estudos de Caso & Portfólio",
-      "descricao": "Sistemas desenvolvidos, decisões arquiteturais tomadas e resultados entregues."
-    },
-    "depoimentos": {
-      "titulo": "Depoimentos & Validações",
-      "descricao": "O que clientes reais dizem sobre a entrega dos projetos."
-    },
-    "ticket_form": {
-      "titulo": "Vamos tirar sua ideia do papel?",
-      "descricao": "Preencha o formulário abaixo com os detalhes da sua demanda e retornarei em até 24 horas."
-    }
-  }
-}
+"secoes": [
+  { "id": "projetos",    "visivel": true, "no_menu": true },
+  { "id": "servicos",    "visivel": true, "no_menu": true },
+  { "id": "processo",    "visivel": true, "no_menu": false },
+  { "id": "depoimentos", "visivel": true, "no_menu": true },
+  { "id": "sobre",       "visivel": true, "no_menu": true },
+  { "id": "faq",         "visivel": true, "no_menu": false }
+]
 ```
+
+- **Ordem, visibilidade e menu das seções (navegação lateral do editor):** arraste as seções (ou use as setas) para mudar a ordem no site e o olho para ocultar; “Link no menu superior” fica no topo do painel de cada seção. O Hero (com a fita `SkillMarquee`) fica sempre no topo e o Contato sempre no fim. As seções do meio são renderizadas por `src/app/page.tsx` **na ordem do array** e só quando `visivel = true`; a `Navbar` monta os links a partir das seções visíveis com `no_menu = true`. `secoesOrdenadas()` completa ids ausentes, então conteúdo antigo continua válido.
+- **Seções de conteúdo editáveis:**
+  - **Serviços (`servicos[]`):** `icone` (lista fixa `ICONES_SERVICO`), `titulo`, `descricao`, `entregas[]` e `tecnologias[]` — nomes escolhidos do catálogo `categorias_skills` (o ícone vem do `slug_icone` do item).
+  - **Como trabalho (`processo[]`):** `titulo`, `descricao` e `duracao` opcional.
+  - **FAQ (`faq[]`):** `pergunta` e `resposta`; também gera dados estruturados `FAQPage`.
+  - **Sobre:** `carreira` (+ `numeros[]`, até 4), `objetivos_profissionais.missao` e `interesses_tecnicos` (“Estudando agora”); foto opcional via `perfil.avatar_url` + `perfil.exibir_foto`.
+  - **Contato (`formulario_contato`):** texto do botão, nota abaixo dele, faixas de investimento (vazio esconde o campo) e a mensagem de sucesso. Os campos do formulário são fixos porque alimentam o funil de Ideias.
+  - Seções vazias (ex.: sem depoimentos aprovados ou sem itens) não aparecem.
+- **Gestão Dinâmica de Categorias:** Permite criar, renomear, reordenar e excluir categorias de tecnologias (`categorias_skills`) e adicionar itens com seletor visual de ícones (`IconPicker.tsx`). O catálogo alimenta a fita animada (itens com `marquee = true`) e os cartões de serviço — não há mais seção “Stack” separada.
 
 ---
 
-## 4. Detalhamento dos Componentes e Telas
-
-### 4.1. Camada Pública (`src/app/page.tsx`)
-1. **Hero com Texto Sequencial (`HeroSection.tsx` + `TextRotator.tsx`):**
-   - Exibe `perfil.headline` seguido da palavra ativa de `perfil.palavras_rotativas` alternando com transição suave a cada 2.5s.
-2. **Barra Animada de Tecnologias (`SkillMarquee.tsx`):**
-   - Filtra todos os itens de `categorias_skills` onde `marquee === true`.
-   - Renderiza os ícones usando `https://skillicons.dev/icons?i=${slug_icone}` em um carrossel horizontal infinito via CSS `@keyframes`.
-3. **Catálogo de Habilidades por Categoria (`SkillsCatalog.tsx`):**
-   - Exibe um grid com os grupos (*Backend & APIs*, *Bancos de Dados*, *Frontend*, *Engenharia & Conceitos*).
-   - Quando `slug_icone` é `null` (conceitos teóricos), exibe uma `Badge` estilizada do shadcn/ui.
-4. **Seção de Objetivos (`ObjectivesSection.tsx`):**
-   - Mostra sua missão, metas atuais e interesses técnicos de forma estruturada para recrutadores e clientes.
-5. **Vitrine de Projetos (`ProjectsGrid.tsx` + `ProjectCard.tsx` + `ProjectDialog.tsx`):**
-   - Busca projetos de `GET /api/public/projetos` (`"use cache"` + `cacheLife('minutes')`).
-   - Grid uniforme (3 colunas no desktop): **3 projetos visíveis** e o restante no botão **"Ver mais"**.
-   - Transforma a string `stacks_utilizadas` (ex: `"Fastify, PostgreSQL, Docker"`) em badges visuais no card.
-   - **Clique no card abre um modal** (`Dialog` do shadcn/ui, fundo com blur) com vídeo (`video_url`: MP4 ou YouTube), descrição, stack e o botão **"Ver projeto ao vivo ↗"** (`live_url`, nova aba). *(Substitui o comportamento anterior de abrir o `live_url` direto pelo card.)*
-   - **Modo Confidencial (`is_confidencial = true`):** Exibe o selo `[🔒 Sob NDA]`, oculta imagem, vídeo e links privados, e o modal mostra um aviso de NDA.
-6. **Navbar (`Navbar.tsx` + `NavTicker.tsx`):** marca `perfil.marca` (tanaka.dev), faixa com os links das seções e as frases de `perfil.navbar_rotativo` **correndo em loop** (React Bits · LogoLoop, pausa no hover), ícones das redes e CTA "Orçamento".
-7. **CTA principal com [Star Border](https://reactbits.dev/c/animations/star-border)** (React Bits) no Hero.
-8. **Depoimentos (`Testimonials.tsx` + `TestimonialsCarousel.tsx`):** faixa horizontal com rolagem/snap e setas. Cada card mostra **projeto + data de entrega · data da avaliação**, o depoimento, o **nome em destaque** e uma **ilustração cartoon** gerada no servidor a partir do nome (DiceBear "Notionists", CC0). **Sem nota/estrelas e sem foto.** Consome `created_at`, `projeto_nome` e `projeto_entrega` (ver `docs-backend.md` §5.2).
-9. **Contato (`ContactSection.tsx`):** canais diretos (e-mail, LinkedIn, GitHub; **sem WhatsApp público**) + `TicketForm` com honeypot no campo `website`.
-
-### 4.2. Portal do Cliente (`src/app/status/[token]/page.tsx`)
-- Consome `GET /api/portal/:token`.
-- **Progresso Visual:** Componente `Progress` do shadcn/ui de 0% a 100% refletindo os checklists concluídos.
-- **Etapas do Projeto:** Lista as macro-tarefas (`visivel_cliente = true`).
-- **Transparência de Custos:** Lista os custos operacionais (servidor, domínio, APIs) com o botão **"Conferir Fonte de Preço ↗"** (`link_fonte`) e resumo do custo único vs. custo mensal.
-- **Comentários:** Permite ao cliente enviar feedbacks diretamente para o painel do desenvolvedor (`POST /api/portal/:token/comentarios`).
-
-### 4.3. Painel Administrativo (`src/app/admin/(painel)/projetos/[id]/page.tsx`)
-Construído com o componente `Tabs` do **shadcn/ui**, dividindo o Hub Central do projeto em **6 abas**:
-1. **Visão Geral & Status:** Altera status (`EM_ANDAMENTO`, `INATIVO`, `CONCLUIDO`), datas e copia o link do Portal do Cliente.
-2. **Engenharia de Requisitos & Dúvidas:** Lista e cadastra RFs, RNFs, Regras de Negócio e Restrições com horas estimadas, além da tabela de dúvidas pendentes/respondidas.
-3. **Avaliação de Stack (BI) & ADRs:** Formulário de pesos determinísticos para justificar a escolha da linguagem/banco e listagem dos ADRs (*Architecture Decision Records*).
-4. **Calculadora Júnior & Financeiro:** Calcula em tempo real o orçamento sugerido ($\text{Horas} \times 1.30 \times \text{Valor Hora} \times \text{Complexidade}$), compara horas estimadas vs. horas reais trabalhadas e gerencia Custos e Parcelas de pagamento.
-5. **Tarefas & Checklists (2 Níveis):** Gerencia as Macro-tarefas (Nível 1) e seus Micro-checklists (Nível 2) que atualizam a barra de progresso ao serem marcados.
-6. **Publicação no Portfólio:** Preenche `stacks_utilizadas`, `imagem_url`, `live_url`, `video_url`, alterna `is_publico` e `is_confidencial`.
-
-### 4.5. Autenticação do Admin e Acesso em Desenvolvimento (✅ Implementado)
-- **Data Access Layer** em `src/lib/auth.ts` (`server-only`): `getAdmin()` / `requireAdmin()`. A sessão é lida dentro de `<Suspense>` (exigência do Cache Components) e **cada leitura de dado do admin chama `requireAdmin()`** (`src/lib/admin-api.ts`), porque layouts não protegem páginas no App Router.
-- **Produção:** `POST /api/auth/login` (Fastify) grava o cookie HTTP-only com o JWT; o Next valida repassando os cookies para `GET /api/auth/me`. Logout via `POST /api/auth/logout`. **Requisito de deploy:** site e API no mesmo domínio-pai (ex.: `tanaka.dev` + `api.tanaka.dev`) com cookie `Domain=.tanaka.dev`, para o Next enxergar o cookie. Em `localhost` isso funciona sem configuração (cookies não dependem da porta).
-- **Atalhos de desenvolvimento** (só com `NODE_ENV === 'development'`, isto é, `next dev`; ignorados em `next build`/`next start` mesmo com as variáveis setadas):
-  - `ADMIN_DEV_BYPASS="true"` no `.env.local` → entra no `/admin` direto, sem tela de login;
-  - Botão **"Entrar sem login"** na tela `/admin/login`;
-  - **Login mock** (quando `NEXT_PUBLIC_USE_MOCKS="true"`) com `ADMIN_DEV_EMAIL` / `ADMIN_DEV_PASSWORD`.
-- A segurança real fica no backend: toda rota `/api/admin/*` deve validar o JWT (`verify-jwt.ts`), independentemente do que o frontend mostra.
-
-### 4.4. Fila de Espera — "Avise-me quando abrir vaga" (🕒 Planejado)
-
-> **Status:** ideia documentada para implementação futura. Nada disso existe no código ainda.
-
-**Problema:** quando não há disponibilidade para novos projetos, o visitante que chega ao site hoje só tem o formulário de orçamento, e o lead se perde. A fila de espera captura esse interesse e o devolve automaticamente quando abrir vaga.
-
-**Gatilho:** `perfil.disponivel_para_novos_projetos = false` no `site-content.json` (editado em `/admin/config`).
-
-**Comportamento na Landing Page (`/`):**
-1. **Badge do Hero** troca de "Disponível para novos projetos" para algo como *"Agenda cheia no momento"*.
-2. **Botão "Avise-me"** com o componente **[Bell Toggle](https://reactbits.dev/c/micro/bell-toggle)** (React Bits), ao lado ou no lugar do CTA principal. O sino "toca" ao ativar, reforçando a ideia de notificação.
-3. O CTA de destaque recebe o **[Star Border](https://reactbits.dev/c/animations/star-border)** (React Bits) para chamar atenção sem poluir a página. *(O Star Border já é usado hoje no CTA principal do Hero.)*
-4. Ao clicar, abre um `Dialog` (shadcn/ui) com um mini-formulário:
-   - **E-mail** (obrigatório), **Nome** (opcional) e **Resumo da ideia** (opcional, 1 linha);
-   - **Consentimento LGPD** (checkbox obrigatório): *"Aceito receber um único e-mail quando houver vaga."*;
-   - **Honeypot** igual ao do `TicketForm`.
-5. Confirmação: *"Você é o nº **7** da fila. Assim que abrir vaga, você recebe um e-mail."*
-6. A seção de contato continua visível: quem quiser pode mandar o ticket mesmo assim.
-
-**Painel Admin (`/admin/fila`):**
-- Lista ordenada por chegada (FIFO) com status `AGUARDANDO` · `NOTIFICADO` · `CONVERTIDO` · `CANCELADO`.
-- Ação **"Abrir N vagas"**: dispara o e-mail para as **N primeiras** pessoas aguardando (não para a fila inteira, para não receber mais pedidos do que dá para atender).
-- Ao virar `disponivel_para_novos_projetos = true` em `/admin/config`, sugerir o disparo ("Há 12 pessoas na fila. Notificar quantas?").
-- Botão **"Converter em Ticket"**: cria o ticket com os dados da fila, como no fluxo normal.
-
-**Componentes previstos:**
-```text
-src/components/public/WaitlistButton.tsx   # ("use client") BellToggle + StarBorder + Dialog
-src/components/public/WaitlistForm.tsx     # ("use client") e-mail, nome, ideia, LGPD, honeypot
-src/components/admin/WaitlistTable.tsx     # ("use client") lista FIFO + "Abrir N vagas"
-src/app/admin/(painel)/fila/page.tsx       # /admin/fila
-src/app/fila/cancelar/[token]/page.tsx     # Página de saída da fila (link do e-mail)
-```
-
-**Dependências do Bell Toggle:** `motion`, `@hugeicons/react` e `@hugeicons/core-free-icons` (o Star Border não tem dependências).
-
-**API consumida:** ver `docs/back/docs-backend.md` §5.9 (`POST /api/public/fila-espera`, `GET /api/admin/fila-espera`, `POST /api/admin/fila-espera/notificar`).
+### 3.3. Pilar 2: Ideias de Projeto (`/admin/tickets`)
+Separa claramente as oportunidades em estágio inicial dos projetos já contratados:
+- **Duas Fontes de Entrada:**
+  1. **Visitante Anônimo (Site Público):** Preenche o `TicketForm` na Home (`origem = 'PUBLICO_SITE'`).
+  2. **Criação Manual pelo Admin:** Botão **"Nova Ideia de Projeto"** dentro de `/admin/tickets` para anotar ideias próprias ou conversas informais (`origem = 'MANUAL_ADMIN'`).
+- **Ciclo de Maturação:** `NOVO` $\to$ `EM_CONVERSA` $\to$ `MVP_EM_ELABORACAO` $\to$ `MVP_APRESENTADO`.
+- **Conversão em 1 Clique:** O botão **"Converter em Cliente + Projeto"** dispara `POST /api/admin/tickets/:id/converter` no NestJS, criando o Cliente e o Projeto em transação atômica (`prisma.$transaction`) e redirecionando para o Hub do novo projeto.
 
 ---
 
-## 5. Wrapper de Conexão com a API (`src/lib/api.ts`)
-
-```typescript
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
-
-export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    credentials: 'include', // Envia e recebe o Cookie HTTP-only com o JWT
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ message: 'Erro de comunicação com o servidor' }));
-    throw new Error(err.message || `Erro HTTP ${response.status}`);
-  }
-
-  return response.json();
-}
-```
+### 3.4. Pilar 3: Clientes & Hub de Projetos com Calculadoras (`/admin/clientes` e `/admin/projetos`)
+- **Liberdade de Criação Direta:** O administrador **não depende** de uma ideia/ticket prévio para cadastrar um cliente ou iniciar um projeto.
+  - Em `/admin/clientes`, o botão **"Novo Cliente"** cadastra um cliente diretamente.
+  - Em `/admin/projetos`, o botão **"Novo Projeto"** cria um projeto diretamente (associado a um cliente existente, criando um cliente na hora, ou como projeto pessoal/autoral).
+- **Hub Central do Projeto (`/admin/projetos/[id]`) — Dividido em 7 Abas (`Tabs` do shadcn/ui):**
+  1. **Visão Geral & Links:** Status (`EM_ANDAMENTO`, `INATIVO`, `CONCLUIDO`), datas, link copiável do **Portal do Cliente (`/status/[token]`)** e link direto para **Abertura de Chamados (`/status/[token]#chamados`)** com toggle `aceita_chamados`.
+  2. **Engenharia de Requisitos & Dúvidas:** Cadastro de Requisitos Funcionais (RF), Não Funcionais (RNF), Regras de Negócio e Restrições com prioridade MoSCoW, complexidade e horas estimadas.
+  3. **Avaliação Arquitetural (BI) & ADRs:** Matriz de pesos determinísticos para documentar o porquê da escolha da linguagem/framework/banco e registro de ADRs (*Architecture Decision Records*).
+  4. **Calculadora Júnior & Financeiro:** Calcula em tempo real:
+     $$\text{Orçamento Calculado} = (\text{Horas Estimadas} \times \text{Fator Segurança Jr} \times \text{Valor Hora}) \times \text{Complexidade}$$
+     Compara horas estimadas vs. horas gastas, calcula a rentabilidade real por hora e gerencia Custos Operacionais (com `link_fonte`) e Parcelas de Pagamento.
+  5. **Tarefas & Checklists (2 Níveis):** Macro-tarefas (Nível 1) e sub-checklists (Nível 2) que atualizam automaticamente a barra de progresso de $0\%$ a $100\%$.
+  6. **Chamados deste Projeto:** Lista todos os chamados de manutenção, alteração e suporte vinculados especificamente a este projeto.
+  7. **Publicação no Portfólio & Sigilo (NDA):** Configura `is_publico`, `is_confidencial` (exibe selo `[🔒 Sob NDA]` e oculta links sensíveis), `stacks_utilizadas`, `imagem_url`, `video_url` e `live_url`.
 
 ---
 
-## 6. Roteiro Gradual de Construção do Frontend (Passo a Passo)
+### 3.5. Pilar 4: Chamados de Manutenção, Alteração e Sustentação (`/admin/chamados` e `/status/[token]`)
+Quando um projeto está bem estruturado ou já entregue, toda solicitação pós-escopo inicial passa a ser tratada como **Chamado de Projeto** (sem jamais se misturar com as Ideias de Projeto da pré-venda):
 
-- [ ] **Passo 1:** Inicializar o projeto Next.js em `./client` (`pnpm create next-app`), configurar Tailwind CSS e inicializar o **shadcn/ui**.
-- [ ] **Passo 2:** Copiar `src/data/site-content.json` e criar o cliente HTTP `src/lib/api.ts`.
-- [ ] **Passo 3:** Construir a Home Pública (`Navbar`, `HeroSection` com `TextRotator`, `SkillMarquee`, `SkillsCatalog` e `ObjectivesSection`).
-- [ ] **Passo 4:** Construir a seção de Projetos (`ProjectCard` com suporte a NDA e links diretos), Depoimentos e o formulário `TicketForm` com Honeypot.
-- [ ] **Passo 5:** Construir a página do Portal do Cliente (`/status/[token]/page.tsx`).
-- [ ] **Passo 6:** Construir a tela de Login (`/admin/login/page.tsx`) e o layout protegido `/admin/(painel)/layout.tsx`.
-- [ ] **Passo 7:** Construir a tela de Funil de Tickets (`/admin/tickets/page.tsx`) com edição de MVP e botão de conversão em Cliente + Projeto.
-- [ ] **Passo 8:** Construir o Hub Central do Projeto (`/admin/projetos/[id]/page.tsx`) com as 6 abas interativas em shadcn/ui.
-- [ ] **Passo 9:** Construir o editor visual do `site-content.json` (`/admin/config/page.tsx`).
-- [ ] **Passo 10 (planejado):** Implementar a Fila de Espera "Avise-me" (§4.4): `WaitlistButton` com Bell Toggle + Star Border, formulário com LGPD/Honeypot, página `/fila/cancelar/[token]` e painel `/admin/fila`.
+- **Como o Cliente Abre um Chamado:**
+  - Através do link exclusivo do projeto (`/status/[token]`), quando `aceita_chamados = true`, o cliente tem a área **"Chamados & Solicitações do Projeto"**.
+  - Ele escolhe o tipo:
+    - 🛠️ **Manutenção / Bug:** Algo que parou de funcionar;
+    - 🔄 **Alteração:** Ajuste em uma tela ou regra existente;
+    - ✨ **Melhoria / Nova Funcionalidade:** Evolução pós-entrega;
+    - 💬 **Suporte / Dúvida:** Auxílio operacional.
+  - O sistema gera um protocolo único (ex: `CHM-2026-0001`) e permite acompanhar o status (`ABERTO` $\to$ `EM_ANALISE` $\to$ `EM_EXECUCAO` $\to$ `AGUARDANDO_CLIENTE` $\to$ `RESOLVIDO`) e trocar mensagens com anexos.
+- **Como o Admin Gerencia:**
+  - Tanto na aba **Chamados** dentro do projeto (`/admin/projetos/[id]`) quanto na visão consolidada (`/admin/chamados`).
+  - Pode orçar horas adicionais (`horas_estimadas_chamado` e `valor_adicional_orcado`) e clicar em **"Converter em Tarefa"**, inserindo o chamado diretamente na esteira de execução do projeto.
+
+---
+
+## 4. Segurança Blindada de Admin Solo (`/admin/login` e `/admin/seguranca`)
+
+Para garantir que apenas o administrador único tenha acesso aos projetos, calculadoras e configurações:
+1. **Autenticação por Dispositivo Físico (Passkeys / WebAuthn):**
+   - Na tela `/admin/login`, além do formulário tradicional, há o botão **"Entrar com Chave de Dispositivo / Passkey"**, que aciona a biometria ou chave criptográfica do computador/celular autorizado (`navigator.credentials.get`) validada no backend NestJS (`@simplewebauthn/server`).
+2. **Autenticação de Dois Fatores (2FA / TOTP):**
+   - Suporte a código de 6 dígitos temporário via app autenticador quando o login for feito por senha.
+3. **Atalhos Seguros de Desenvolvimento Local (`NODE_ENV === 'development'`):**
+   - Mantém os modos `ADMIN_DEV_BYPASS` e `NEXT_PUBLIC_USE_MOCKS` exclusivamente durante o `next dev` para permitir testar e estilizar a interface mesmo com o backend desligado.

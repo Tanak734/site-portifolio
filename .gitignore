@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-# Monorepo pnpm: client (Next.js) + server (Fastify + Prisma)
+# Monorepo pnpm: client (Next.js) + app (NestJS + Prisma)
 # Regras específicas do Next também ficam em client/.gitignore
 # ─────────────────────────────────────────────────────────────
 
@@ -51,15 +51,15 @@ playwright-report/
 *.db-journal
 *.sqlite
 *.sqlite3
-server/prisma/dev.db*
+app/prisma/dev.db*
 # Dumps/backups gerados localmente
 *.dump
 *.sql.gz
 backups/
 
 # ── Uploads locais do backend (mantém a pasta via .gitkeep) ──
-server/uploads/*
-!server/uploads/.gitkeep
+app/uploads/*
+!app/uploads/.gitkeep
 
 # ── Certificados e chaves ──
 *.pem
@@ -98,3 +98,6 @@ Desktop.ini
 # ── Ferramentas de IA (configurações locais/pessoais) ──
 .claude/settings.local.json
 CLAUDE.local.md
+
+# ── Prisma Client gerado (pnpm db:generate) ──
+app/src/generated/

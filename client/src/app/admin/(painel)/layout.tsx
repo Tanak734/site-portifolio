@@ -1,15 +1,16 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminTopbar from '@/components/admin/AdminTopbar';
 import { devBypassPorEnv, requireAdmin } from '@/lib/auth';
 import { getContent } from '@/lib/content';
+import { USE_MOCKS } from '@/lib/flags';
 
 export const metadata: Metadata = { title: 'Admin', robots: { index: false, follow: false } };
 
-/** Lê a sessão (dentro do Suspense, como pede o Cache Components) e monta a sidebar. */
-async function Sidebar() {
+/** Lê a sessão (dentro do Suspense, como pede o Cache Components) e monta a barra superior. */
+async function Topbar() {
   const admin = await requireAdmin();
-  return <AdminSidebar admin={admin} marca={(await getContent()).perfil.marca} bypassEnv={devBypassPorEnv()} />;
+  return <AdminTopbar admin={admin} marca={(await getContent()).perfil.marca} bypassEnv={devBypassPorEnv()} previa={USE_MOCKS} />;
 }
 
 /** Só libera o conteúdo com sessão válida. Mostra aviso quando é um modo de desenvolvimento. */
@@ -22,7 +23,7 @@ async function Gate({ children }: { children: React.ReactNode }) {
           Modo desenvolvimento · {admin.modo === 'dev' ? 'acesso direto sem login' : 'login mock (sem backend)'} — indisponível em produção.
         </div>
       )}
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">{children}</div>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">{children}</div>
     </>
   );
 }
@@ -33,9 +34,9 @@ function Carregando() {
 
 export default function PainelLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[16rem_1fr]">
-      <Suspense fallback={<aside className="hidden border-r bg-card lg:block" />}>
-        <Sidebar />
+    <div className="min-h-dvh">
+      <Suspense fallback={<div className="h-14 border-b" />}>
+        <Topbar />
       </Suspense>
       <main className="min-w-0">
         <Suspense fallback={<Carregando />}>
