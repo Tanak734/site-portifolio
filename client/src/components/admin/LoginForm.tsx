@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api';
 import { entrarModoDev, loginMock } from '@/app/admin/actions';
 
-export default function LoginForm({ mock, dev }: { mock: boolean; dev: boolean }) {
+type Demo = { email: string; senha: string } | null;
+
+export default function LoginForm({ mock, dev, demo = null }: { mock: boolean; dev: boolean; demo?: Demo }) {
   const router = useRouter();
   const [erro, setErro] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -40,14 +42,20 @@ export default function LoginForm({ mock, dev }: { mock: boolean; dev: boolean }
 
   return (
     <div className="space-y-6">
+      {demo && (
+        <p className="rounded-xl border border-dashed border-primary/50 p-4 text-xs text-muted-foreground">
+          <span className="font-medium text-brand">Demonstração.</span> Os dados são fictícios e nada é salvo. Os campos já vêm
+          preenchidos: <span className="font-mono">{demo.email}</span> / <span className="font-mono">{demo.senha}</span>
+        </p>
+      )}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" name="email" type="email" autoComplete="username" required className="h-11" />
+          <Input id="email" name="email" type="email" autoComplete="username" required className="h-11" defaultValue={demo?.email} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="senha">Senha</Label>
-          <Input id="senha" name="senha" type="password" autoComplete="current-password" required className="h-11" />
+          <Input id="senha" name="senha" type="password" autoComplete="current-password" required className="h-11" defaultValue={demo?.senha} />
         </div>
 
         {erro && (

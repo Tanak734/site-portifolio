@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import LoginForm from '@/components/admin/LoginForm';
-import { getAdmin, IS_DEV } from '@/lib/auth';
+import { getAdmin, IS_DEMO, IS_DEV } from '@/lib/auth';
 import { USE_MOCKS } from '@/lib/flags';
 import { getContent } from '@/lib/content';
 
@@ -30,7 +30,11 @@ export default async function LoginPage() {
         <div className="rounded-2xl border bg-card p-6 sm:p-8">
           <h1 className="text-xl font-semibold">Painel administrativo</h1>
           <p className="mt-1 mb-6 text-sm text-muted-foreground">Entre com a sua conta de administrador.</p>
-          <LoginForm mock={USE_MOCKS} dev={IS_DEV} />
+          <LoginForm
+            mock={USE_MOCKS}
+            dev={IS_DEV}
+            demo={IS_DEMO ? { email: process.env.ADMIN_DEV_EMAIL || 'admin@tanaka.dev', senha: process.env.ADMIN_DEV_PASSWORD || 'admin123' } : null}
+          />
         </div>
       </div>
     </main>

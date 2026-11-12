@@ -8,6 +8,8 @@
 //
 // Os modos 2 e 3 só existem quando NODE_ENV === 'development' (next dev).
 // Em `next build` / `next start` (produção) eles são ignorados, mesmo com as variáveis setadas.
+// Exceção: DEMO_MODE="true" (+ mocks) libera o modo 2 em produção para uma demonstração pública
+// com dados de exemplo — nada é salvo (ver salvarConteudo).
 import 'server-only';
 import { cache } from 'react';
 import { cookies } from 'next/headers';
@@ -18,6 +20,8 @@ export type ModoAuth = 'api' | 'mock' | 'dev';
 export type Admin = { id: string; nome: string; email: string; modo: ModoAuth };
 
 export const IS_DEV = process.env.NODE_ENV === 'development';
+/** Demonstração pública: login mock em produção, dados de exemplo e nada persistido. */
+export const IS_DEMO = USE_MOCKS && process.env.DEMO_MODE === 'true';
 export const DEV_COOKIE = 'tanaka_dev_access';
 export const MOCK_COOKIE = 'tanaka_mock_session';
 
@@ -35,8 +39,8 @@ export const getAdmin = cache(async (): Promise<Admin | null> => {
   }
 
   if (USE_MOCKS) {
-    // Sessão mock é forjável por design: por isso só vale em desenvolvimento.
-    if (!IS_DEV) return null;
+    // Sessão mock é forjável por design: só vale em desenvolvimento ou na demonstração (dados fictícios).
+    if (!IS_DEV && !IS_DEMO) return null;
     return jar.get(MOCK_COOKIE)?.value === '1'
       ? { id: 'mock', nome: 'Admin (mock)', email: process.env.ADMIN_DEV_EMAIL || 'admin@tanaka.dev', modo: 'mock' }
       : null;

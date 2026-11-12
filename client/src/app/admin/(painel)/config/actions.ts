@@ -3,7 +3,7 @@
 import { rename, writeFile } from 'node:fs/promises';
 import { cookies } from 'next/headers';
 import { updateTag } from 'next/cache';
-import { requireAdmin } from '@/lib/auth';
+import { IS_DEMO, IS_DEV, requireAdmin } from '@/lib/auth';
 import { USE_MOCKS } from '@/lib/flags';
 import { CONTENT_FILE, CONTENT_TAG } from '@/lib/content';
 import { siteContentSchema } from '@/lib/content-schema';
@@ -33,7 +33,10 @@ export async function salvarConteudo(payload: unknown): Promise<SalvarResultado>
   }
 
   try {
-    if (USE_MOCKS) {
+    if (IS_DEMO && !IS_DEV) {
+      // Demonstração: valida e responde como salvo, mas não grava (o disco da Vercel é somente leitura).
+      return { ok: true, salvoEm: new Date().toISOString() };
+    } else if (USE_MOCKS) {
       const tmp = `${CONTENT_FILE}.tmp`;
       await writeFile(tmp, JSON.stringify(parsed.data, null, 2) + '\n', 'utf8');
       await rename(tmp, CONTENT_FILE);

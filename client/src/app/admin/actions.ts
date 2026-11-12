@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { DEV_COOKIE, IS_DEV, MOCK_COOKIE } from '@/lib/auth';
+import { DEV_COOKIE, IS_DEMO, IS_DEV, MOCK_COOKIE } from '@/lib/auth';
 import { USE_MOCKS } from '@/lib/flags';
 
 const cookieOpts = { httpOnly: true, sameSite: 'lax' as const, path: '/', maxAge: 60 * 60 * 8 };
@@ -16,9 +16,9 @@ export async function entrarModoDev() {
 
 export type LoginState = { erro?: string };
 
-/** Login local usado quando NEXT_PUBLIC_USE_MOCKS="true" (sem backend). Só em desenvolvimento. */
+/** Login local usado quando NEXT_PUBLIC_USE_MOCKS="true" (sem backend). Só em desenvolvimento ou com DEMO_MODE. */
 export async function loginMock(email: string, senha: string): Promise<LoginState> {
-  if (!IS_DEV || !USE_MOCKS) return { erro: 'Login mock indisponível.' };
+  if (!(IS_DEV || IS_DEMO) || !USE_MOCKS) return { erro: 'Login mock indisponível.' };
   const okEmail = process.env.ADMIN_DEV_EMAIL || 'admin@tanaka.dev';
   const okSenha = process.env.ADMIN_DEV_PASSWORD || 'admin123';
   if (email.trim().toLowerCase() !== okEmail.toLowerCase() || senha !== okSenha) {
