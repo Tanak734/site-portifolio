@@ -29,7 +29,9 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      # Instala só o front (client). O backend (app/ com NestJS + Prisma) não é usado
+      # no Pages e precisaria de banco/DATABASE_URL para o `prisma generate`.
+      - run: pnpm install --frozen-lockfile --filter @portfolio/client...
 
       # Remove o admin e o Cache Components (incompatíveis com site estático)
       - name: Preparar export estático
